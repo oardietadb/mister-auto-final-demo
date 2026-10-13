@@ -1,7 +1,13 @@
 # Images produits
 
-Les 14 visuels de batteries actuellement utilisés sont des recadrages individuels des photos produit visibles dans `batteries.png`, une capture de référence conservée à la racine du dépôt. Ils sont stockés dans `batteries/` et associés par référence dans `src/lib/catalog.ts`.
+Les visuels sont des recadrages locaux de produits présentés dans les captures de référence conservées à la racine du dépôt :
 
-La capture source mesure 1920 × 6934 pixels ; chaque visuel recadré mesure 110 × 105 pixels, soit une définition adaptée aux vignettes de la page catégorie de référence. Les images sont servies depuis `public/` avec `next/image`, sans dépendance à une URL distante.
+- `batteries/` depuis `batteries.png` ;
+- `freinage/` depuis `frinage.png` ;
+- `pneus/` depuis `pneus.png` ;
+- `huile-moteur/` depuis `screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png` ;
+- `accessoires/` depuis `screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png`.
 
-Pour ajouter d'autres catégories, fournir une capture de référence contenant les produits et conserver une correspondance contrôlable entre chaque produit visible, sa référence et son fichier recadré. Ne pas associer une photo sur la seule base de sa position dans une grille.
+Le catalogue associe les recadrages aux fiches par une entrée produit explicite et stocke le chemin local, le texte alternatif et l’URL de la capture source. Les composants utilisent `next/image`. Les captures originales restent intactes.
+
+`chaines.png` ne montre pas de liste de produits. Son bandeau est utilisé uniquement comme image de catégorie dans `public/images/categories/` ; il n’est pas présenté comme une photo d’une chaîne à neige référencée. Demander une capture de la liste des chaînes pour associer leurs images SKU.

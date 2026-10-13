@@ -142,10 +142,13 @@ button { color: inherit; }
 .section-page > h1, .garage-layout h1 { margin: 7px 0 8px; font-size: 32px; line-height: 1.15; letter-spacing: -.03em; }
 .page-intro { margin: 0 0 24px; color: var(--muted); }
 .section-page > .category-grid { margin-top: 27px; }
-.listing-hero { position: relative; min-height: 170px; display: flex; align-items: center; overflow: hidden; margin-bottom: 24px; padding: 25px 36px; border-radius: 9px; }
+.listing-hero { position: relative; isolation: isolate; min-height: 170px; display: flex; align-items: center; overflow: hidden; margin-bottom: 24px; padding: 25px 36px; border-radius: 9px; }
+.listing-hero-background { z-index: 0; object-fit: contain; object-position: right center; }
+.listing-hero-with-image::after { position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg,#e8f1f8f5 0%,#e8f1f8e8 44%,#e8f1f84a 100%); content: ""; }
+.listing-hero-copy { position: relative; z-index: 2; }
 .listing-hero h1 { margin: 4px 0; font-size: 31px; }
 .listing-hero p { max-width: 530px; margin: 0; color: #56616b; font-size: 13px; }
-.listing-hero-icon { position: absolute; right: 8%; color: #fff9; font-size: 112px; }
+.listing-hero-icon { position: absolute; z-index: 2; right: 8%; color: #fff9; font-size: 112px; }
 .listing-toolbar { display: flex; align-items: center; justify-content: space-between; margin: 16px 0; padding: 12px 15px; border: 1px solid var(--line); border-radius: 6px; background: white; font-size: 12px; }
 .listing-toolbar label { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 .listing-toolbar select, .filters select { padding: 8px 10px; border: 1px solid #dfe2e5; border-radius: 4px; background: #fff; color: var(--ink); }

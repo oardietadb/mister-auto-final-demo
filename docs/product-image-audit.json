@@ -1,53 +1,5 @@
 [
   {
-    "slug": "plaquettes-frein-ate-ceramic",
-    "reference": "ATE-13.0470",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "disques-frein-brembo",
-    "reference": "BRE-09.9772",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "pneu-michelin-primacy-4",
-    "reference": "MIC-2055516",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "pneu-goodyear-vector-4seasons",
-    "reference": "GOO-4S205",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "huile-castrol-edge-5w30",
-    "reference": "CAS-15669E",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "huile-total-quartz-ineo",
-    "reference": "TOT-214877",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
     "slug": "chaines-neige-chaussettes",
     "reference": "ISS-66",
     "sourceUrl": null,
@@ -56,136 +8,8 @@
     "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
   },
   {
-    "slug": "accessoire-coffre-organiseur",
-    "reference": "MA-ORG-01",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
     "slug": "retroviseur-occasion-renault",
     "reference": "OCC-REN-245",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "kit-entretien-frein",
-    "reference": "ATE-700015",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-bos-bp1234",
-    "reference": "BOS-BP1234",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-trw-gdb1550",
-    "reference": "TRW-GDB1550",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-fer-fdb1789",
-    "reference": "FER-FDB1789",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-val-598821",
-    "reference": "VAL-598821",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-bos-0986479",
-    "reference": "BOS-0986479",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-trw-df6073",
-    "reference": "TRW-DF6073",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-ate-240125",
-    "reference": "ATE-240125",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-fer-ddf1512",
-    "reference": "FER-DDF1512",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-con-2055516",
-    "reference": "CON-2055516",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-han-2055516",
-    "reference": "HAN-2055516",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-pir-2055516",
-    "reference": "PIR-2055516",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-mot-104777",
-    "reference": "MOT-104777",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-elf-220284",
-    "reference": "ELF-220284",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-mob-153667",
-    "reference": "MOB-153667",
     "sourceUrl": null,
     "imagePath": null,
     "status": "unavailable",
@@ -218,38 +42,6 @@
   {
     "slug": "catalogue-kon-k45",
     "reference": "KON-K45",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-ma-tap-01",
-    "reference": "MA-TAP-01",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-mic-ca-100",
-    "reference": "MIC-CA-100",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-ctk-mxs5",
-    "reference": "CTK-MXS5",
-    "sourceUrl": null,
-    "imagePath": null,
-    "status": "unavailable",
-    "note": "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée."
-  },
-  {
-    "slug": "catalogue-osr-ledriving",
-    "reference": "OSR-LEDriving",
     "sourceUrl": null,
     "imagePath": null,
     "status": "unavailable",
@@ -396,6 +188,318 @@
     "reference": "PRO-04220026",
     "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/batteries.png",
     "imagePath": "/images/products/batteries/bproauto-04220026.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-delphi-lp3302",
+    "reference": "LP3302",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/delphi-lp3302.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-trw-avant",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/trw-gdb-unknown.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-bosch-0986494660",
+    "reference": "0 986 494 660 / BP1505",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/bosch-0986494660.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-bosch-0986424829",
+    "reference": "0 986 424 829",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/bosch-0986424829.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-brembo-p85152",
+    "reference": "P 85 152",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/brembo-p85152.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-bosch-performance",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/bosch-brake-set.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-ferodo-premier",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/ferodo-brake-set.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-trw-coated",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/trw-brake-set-2.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-jurid-573773j",
+    "reference": "573773J",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/jurid-573773j.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-abs-37671",
+    "reference": "37671",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/abs-37671.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-zimmermann-256611702",
+    "reference": "25661.170.2",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/zimmermann-256611702.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-nk-224719",
+    "reference": "224719",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/nk-224719.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-maxgear-19-2143",
+    "reference": "19-2143",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/maxgear-19-2143.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-abs-35125",
+    "reference": "35125",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/abs-35125.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-bosch-0986460162",
+    "reference": "0 986 460 162",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/bosch-0986460162.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-textar-2209101",
+    "reference": "2209101",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/textar-2209101.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-quinton-hazell-bp1906",
+    "reference": "BP1906",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/quinton-hazell-bp1906.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-bosch-0986460072",
+    "reference": "0 986 460 072",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/bosch-brake-set-3.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-pagid-t2581n",
+    "reference": "T2581N",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/pagid-t2581n.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "plaquette-brembo-indisponible",
+    "reference": "P 85 152",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+    "imagePath": "/images/products/freinage/brembo-unavailable.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "pneu-goodyear-efficientgrip-528503",
+    "reference": "528503",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/pneus.png",
+    "imagePath": "/images/products/pneus/goodyear-528503.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "pneu-michelin-energy-saver-771116",
+    "reference": "771116",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/pneus.png",
+    "imagePath": "/images/products/pneus/michelin-771116.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "pneu-goodyear-efficientgrip-528504",
+    "reference": "528504",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/pneus.png",
+    "imagePath": "/images/products/pneus/goodyear-528504.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "pneu-dunlop-bluresponse-528520",
+    "reference": "528520",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/pneus.png",
+    "imagePath": "/images/products/pneus/dunlop-528520.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "huile-mannol-legend-mn7730-5",
+    "reference": "MN7730-5",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+    "imagePath": "/images/products/huile-moteur/mannol-mn7730-5.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "huile-liqui-moly-top-tec-21605",
+    "reference": "21605",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+    "imagePath": "/images/products/huile-moteur/liqui-moly-21605.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "huile-shell-helix-ultra-pro-avl",
+    "reference": "550046304",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+    "imagePath": "/images/products/huile-moteur/shell-550046304.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "huile-petronas-syntium-7000",
+    "reference": "70720251EU",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+    "imagePath": "/images/products/huile-moteur/petronas-70720251eu.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "huile-total-quartz-ineo-long-life-5l",
+    "reference": "214225",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+    "imagePath": "/images/products/huile-moteur/total-214225.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "huile-total-quartz-ineo-long-life-1l",
+    "reference": "216246",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+    "imagePath": "/images/products/huile-moteur/total-216246.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "huile-mannol-0w30-mn7730-20",
+    "reference": "MN7730-20",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+    "imagePath": "/images/products/huile-moteur/mannol-mn7730-20.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-velo-electrique-new-york",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/velo-electrique-new-york.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-nettoyant-injecteurs-warm-up",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/nettoyant-injecteurs-warm-up.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-kit-renovation-phares-philips",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/kit-renovation-phare-philips.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-pare-soleil-wrc",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/pare-soleil-wrc.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-chargeur-vehicule-electrique-type-2",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/chargeur-vehicule-electrique-type-2.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-diagnostic-obd2",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/diagnostic-obd2.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-cle-vidange-8-10mm",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/cle-vidange-8-10mm.png",
+    "status": "matched",
+    "note": null
+  },
+  {
+    "slug": "accessoire-nettoyant-plastique-michelin",
+    "reference": "Non indiquée",
+    "sourceUrl": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+    "imagePath": "/images/products/accessoires/nettoyant-plastique-michelin.png",
     "status": "matched",
     "note": null
   }

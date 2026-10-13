@@ -23,6 +23,7 @@ export type Category = {
   image: string;
   accent: string;
   types: CategoryType[];
+  heroImage?: string;
 };
 
 export type Product = {
@@ -33,7 +34,7 @@ export type Product = {
   category: CategorySlug;
   categoryType: CategoryTypeSlug;
   reference: string;
-  price: number;
+  price: number | null;
   rating: number;
   reviews: number;
   stock: string;
@@ -67,7 +68,7 @@ export const categories: Category[] = [
   { slug: "batteries", name: "Batteries", eyebrow: "Un démarrage garanti", description: "La batterie qu’il vous faut, sélectionnée selon votre véhicule.", icon: "▣", image: "linear-gradient(145deg,#ecf0e9,#d6e3cf)", accent: "#478455", types: categoryTypes.filter((type) => type.category === "batteries") },
   { slug: "pneus", name: "Pneus", eyebrow: "La route vous attend", description: "Pneus été, hiver et toutes saisons au meilleur prix.", icon: "◉", image: "linear-gradient(145deg,#e7edf0,#c5d5dc)", accent: "#3179a7", types: categoryTypes.filter((type) => type.category === "pneus") },
   { slug: "huile-moteur", name: "Huile moteur", eyebrow: "Prenez soin du moteur", description: "Des huiles adaptées aux exigences de votre moteur.", icon: "▤", image: "linear-gradient(145deg,#fbedd2,#f0d4a3)", accent: "#dc9d29", types: categoryTypes.filter((type) => type.category === "huile-moteur") },
-  { slug: "chaines-neige", name: "Chaînes à neige", eyebrow: "Prêt pour l’hiver", description: "Chaînes et chaussettes neige compatibles avec vos pneus.", icon: "❄", image: "linear-gradient(145deg,#e0eff9,#bad9eb)", accent: "#318bc5", types: categoryTypes.filter((type) => type.category === "chaines-neige") },
+  { slug: "chaines-neige", name: "Chaînes à neige", eyebrow: "Prêt pour l’hiver", description: "Chaînes et chaussettes neige compatibles avec vos pneus.", icon: "❄", image: "linear-gradient(145deg,#e0eff9,#bad9eb)", accent: "#318bc5", heroImage: "/images/categories/chaines-neige-reference.png", types: categoryTypes.filter((type) => type.category === "chaines-neige") },
   { slug: "accessoires", name: "Accessoires", eyebrow: "Chaque détail compte", description: "Tout le confort et les accessoires utiles pour votre voiture.", icon: "✦", image: "linear-gradient(145deg,#f4e9e4,#e5c9bc)", accent: "#d66d4c", types: categoryTypes.filter((type) => type.category === "accessoires") },
   { slug: "pieces-occasion", name: "Pièces d’occasion", eyebrow: "La seconde vie des pièces", description: "Des pièces auto d’occasion vérifiées, plus accessibles.", icon: "↻", image: "linear-gradient(145deg,#e8e9f2,#c9cce1)", accent: "#6067a2", types: categoryTypes.filter((type) => type.category === "pieces-occasion") },
 ];
@@ -157,6 +158,79 @@ const batteryProducts: Array<Omit<ProductRecord, "id">> = [
   { slug: "batterie-bproauto-04220026", name: "Batterie de voiture 74 Ah / 680 A", brand: "BPROAUTO", category: "batteries", categoryType: "batteries-auto", reference: "PRO-04220026", price: 77.18, rating: 4.8, reviews: 12, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BPROAUTO de 74 Ah avec courant de démarrage de 680 A.", tags: ["74 Ah", "680 A", "12 V"] },
 ];
 
+type ReferenceProductInput = Pick<ProductRecord, "slug" | "name" | "brand" | "category" | "categoryType" | "reference" | "price"> & {
+  imagePath: string;
+  available?: boolean;
+  reviews?: number;
+  rating?: number;
+};
+
+function referenceProduct(input: ReferenceProductInput): ProductRecord & { imagePath: string } {
+  const category = categories.find((item) => item.slug === input.category);
+  return {
+    id: `reference-${input.slug}`,
+    slug: input.slug,
+    name: input.name,
+    brand: input.brand,
+    category: input.category,
+    categoryType: input.categoryType,
+    reference: input.reference,
+    price: input.price,
+    rating: input.rating ?? 0,
+    reviews: input.reviews ?? 0,
+    stock: input.available === false ? "Temporairement indisponible" : "Livraison rapide — expédié sous 24 h",
+    available: input.available,
+    icon: category?.icon ?? "◉",
+    color: "#fff",
+    description: `${input.name}. Sélection issue de la capture de référence. Vérifiez la compatibilité avec votre véhicule avant commande.`,
+    tags: [],
+    listed: true,
+    imagePath: input.imagePath,
+  };
+}
+
+const referenceProducts = [
+  referenceProduct({ slug: "plaquette-delphi-lp3302", name: "Jeu de plaquettes de frein avant", brand: "DELPHI", category: "freinage", categoryType: "plaquettes-de-frein", reference: "LP3302", price: 52.9, reviews: 0, imagePath: "/images/products/freinage/delphi-lp3302.png" }),
+  referenceProduct({ slug: "plaquette-trw-avant", name: "Jeu de plaquettes de frein avant", brand: "TRW", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 40.9, reviews: 42, imagePath: "/images/products/freinage/trw-gdb-unknown.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986494660", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 494 660 / BP1505", price: 47.5, reviews: 42, imagePath: "/images/products/freinage/bosch-0986494660.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986424829", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 424 829", price: 59.9, reviews: 23, imagePath: "/images/products/freinage/bosch-0986424829.png" }),
+  referenceProduct({ slug: "plaquette-brembo-p85152", name: "Jeu de plaquettes de frein avant", brand: "BREMBO", category: "freinage", categoryType: "plaquettes-de-frein", reference: "P 85 152", price: 223.9, imagePath: "/images/products/freinage/brembo-p85152.png" }),
+  referenceProduct({ slug: "plaquette-bosch-performance", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 78.9, reviews: 8, imagePath: "/images/products/freinage/bosch-brake-set.png" }),
+  referenceProduct({ slug: "plaquette-ferodo-premier", name: "Jeu de plaquettes de frein avant", brand: "FERODO", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 56.9, imagePath: "/images/products/freinage/ferodo-brake-set.png" }),
+  referenceProduct({ slug: "plaquette-trw-coated", name: "Jeu de plaquettes de frein avant", brand: "TRW", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 75.9, imagePath: "/images/products/freinage/trw-brake-set-2.png" }),
+  referenceProduct({ slug: "plaquette-jurid-573773j", name: "Jeu de plaquettes de frein avant", brand: "JURID", category: "freinage", categoryType: "plaquettes-de-frein", reference: "573773J", price: 86.9, imagePath: "/images/products/freinage/jurid-573773j.png" }),
+  referenceProduct({ slug: "plaquette-abs-37671", name: "Jeu de plaquettes de frein avant", brand: "A.B.S.", category: "freinage", categoryType: "plaquettes-de-frein", reference: "37671", price: 50.9, imagePath: "/images/products/freinage/abs-37671.png" }),
+  referenceProduct({ slug: "plaquette-zimmermann-256611702", name: "Jeu de plaquettes de frein avant", brand: "ZIMMERMANN", category: "freinage", categoryType: "plaquettes-de-frein", reference: "25661.170.2", price: 103.9, imagePath: "/images/products/freinage/zimmermann-256611702.png" }),
+  referenceProduct({ slug: "plaquette-nk-224719", name: "Jeu de plaquettes de frein avant", brand: "NK", category: "freinage", categoryType: "plaquettes-de-frein", reference: "224719", price: 55.9, imagePath: "/images/products/freinage/nk-224719.png" }),
+  referenceProduct({ slug: "plaquette-maxgear-19-2143", name: "Jeu de plaquettes de frein avant", brand: "MAXGEAR", category: "freinage", categoryType: "plaquettes-de-frein", reference: "19-2143", price: 29.5, imagePath: "/images/products/freinage/maxgear-19-2143.png" }),
+  referenceProduct({ slug: "plaquette-abs-35125", name: "Jeu de plaquettes de frein avant", brand: "A.B.S.", category: "freinage", categoryType: "plaquettes-de-frein", reference: "35125", price: 46.9, imagePath: "/images/products/freinage/abs-35125.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986460162", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 460 162", price: 98.9, imagePath: "/images/products/freinage/bosch-0986460162.png" }),
+  referenceProduct({ slug: "plaquette-textar-2209101", name: "Jeu de plaquettes de frein avant", brand: "TEXTAR", category: "freinage", categoryType: "plaquettes-de-frein", reference: "2209101", price: 267.9, imagePath: "/images/products/freinage/textar-2209101.png" }),
+  referenceProduct({ slug: "plaquette-quinton-hazell-bp1906", name: "Jeu de plaquettes de frein avant", brand: "QUINTON HAZELL", category: "freinage", categoryType: "plaquettes-de-frein", reference: "BP1906", price: 117.9, imagePath: "/images/products/freinage/quinton-hazell-bp1906.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986460072", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 460 072", price: 55.9, imagePath: "/images/products/freinage/bosch-brake-set-3.png" }),
+  referenceProduct({ slug: "plaquette-pagid-t2581n", name: "Jeu de plaquettes de frein avant", brand: "PAGID", category: "freinage", categoryType: "plaquettes-de-frein", reference: "T2581N", price: 199.9, imagePath: "/images/products/freinage/pagid-t2581n.png" }),
+  referenceProduct({ slug: "plaquette-brembo-indisponible", name: "Jeu de plaquettes de frein avant", brand: "BREMBO", category: "freinage", categoryType: "plaquettes-de-frein", reference: "P 85 152", price: null, available: false, imagePath: "/images/products/freinage/brembo-unavailable.png" }),
+  referenceProduct({ slug: "pneu-goodyear-efficientgrip-528503", name: "Pneu GOODYEAR EfficientGrip Performance", brand: "GOODYEAR", category: "pneus", categoryType: "pneus-auto", reference: "528503", price: 78.9, reviews: 2, rating: 4.8, imagePath: "/images/products/pneus/goodyear-528503.png" }),
+  referenceProduct({ slug: "pneu-michelin-energy-saver-771116", name: "Pneu MICHELIN Energy Saver+ 175/65 R14 82T", brand: "MICHELIN", category: "pneus", categoryType: "pneus-auto", reference: "771116", price: 77.9, reviews: 3, rating: 4.8, imagePath: "/images/products/pneus/michelin-771116.png" }),
+  referenceProduct({ slug: "pneu-goodyear-efficientgrip-528504", name: "Pneu GOODYEAR EfficientGrip Performance", brand: "GOODYEAR", category: "pneus", categoryType: "pneus-auto", reference: "528504", price: 66.9, reviews: 2, rating: 4.8, imagePath: "/images/products/pneus/goodyear-528504.png" }),
+  referenceProduct({ slug: "pneu-dunlop-bluresponse-528520", name: "Pneu DUNLOP Sport BluResponse 195/65 R15 91H", brand: "DUNLOP", category: "pneus", categoryType: "pneus-auto", reference: "528520", price: 58.9, reviews: 9, rating: 4.8, imagePath: "/images/products/pneus/dunlop-528520.png" }),
+  referenceProduct({ slug: "huile-mannol-legend-mn7730-5", name: "Huile moteur MANNOL Legend 504/507 0W-30 5 L", brand: "MANNOL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "MN7730-5", price: 48.9, reviews: 8, rating: 4.8, imagePath: "/images/products/huile-moteur/mannol-mn7730-5.png" }),
+  referenceProduct({ slug: "huile-liqui-moly-top-tec-21605", name: "Huile moteur LIQUI MOLY Top Tec 4210 0W-30 5 L", brand: "LIQUI MOLY", category: "huile-moteur", categoryType: "huiles-moteur", reference: "21605", price: 79.9, reviews: 1, rating: 4.8, imagePath: "/images/products/huile-moteur/liqui-moly-21605.png" }),
+  referenceProduct({ slug: "huile-shell-helix-ultra-pro-avl", name: "Huile moteur SHELL Helix Ultra Pro AV-L 0W-30 5 L", brand: "SHELL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "550046304", price: 82.9, reviews: 10, rating: 4.6, imagePath: "/images/products/huile-moteur/shell-550046304.png" }),
+  referenceProduct({ slug: "huile-petronas-syntium-7000", name: "Huile moteur PETRONAS Syntium 7000 LL 0W-20 200 L", brand: "PETRONAS", category: "huile-moteur", categoryType: "huiles-moteur", reference: "70720251EU", price: 1412.69, imagePath: "/images/products/huile-moteur/petronas-70720251eu.png" }),
+  referenceProduct({ slug: "huile-total-quartz-ineo-long-life-5l", name: "Huile moteur TOTAL Quartz Ineo Long Life 0W-30 5 L", brand: "TOTALENERGIES", category: "huile-moteur", categoryType: "huiles-moteur", reference: "214225", price: null, available: false, reviews: 276, rating: 4.5, imagePath: "/images/products/huile-moteur/total-214225.png" }),
+  referenceProduct({ slug: "huile-total-quartz-ineo-long-life-1l", name: "Huile moteur TOTAL Quartz Ineo Long Life 0W-30 1 L", brand: "TOTALENERGIES", category: "huile-moteur", categoryType: "huiles-moteur", reference: "216246", price: null, available: false, reviews: 87, rating: 4.5, imagePath: "/images/products/huile-moteur/total-216246.png" }),
+  referenceProduct({ slug: "huile-mannol-0w30-mn7730-20", name: "Huile moteur MANNOL 0W-30 SN/C3 20 L", brand: "MANNOL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "MN7730-20", price: null, available: false, imagePath: "/images/products/huile-moteur/mannol-mn7730-20.png" }),
+  referenceProduct({ slug: "accessoire-velo-electrique-new-york", name: "Vélo électrique noir New York", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: null, available: false, imagePath: "/images/products/accessoires/velo-electrique-new-york.png" }),
+  referenceProduct({ slug: "accessoire-nettoyant-injecteurs-warm-up", name: "Nettoyant injecteurs diesel BOLK — 1 L", brand: "BOLK", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 42.9, imagePath: "/images/products/accessoires/nettoyant-injecteurs-warm-up.png" }),
+  referenceProduct({ slug: "accessoire-kit-renovation-phares-philips", name: "Kit de rénovation pour phares", brand: "PHILIPS", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: null, available: false, imagePath: "/images/products/accessoires/kit-renovation-phare-philips.png" }),
+  referenceProduct({ slug: "accessoire-pare-soleil-wrc", name: "Pare-soleil aluminium WRC 130 × 70 cm", brand: "WRC", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 9.9, imagePath: "/images/products/accessoires/pare-soleil-wrc.png" }),
+  referenceProduct({ slug: "accessoire-chargeur-vehicule-electrique-type-2", name: "Chargeur portable véhicule électrique — Type 2", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: null, available: false, imagePath: "/images/products/accessoires/chargeur-vehicule-electrique-type-2.png" }),
+  referenceProduct({ slug: "accessoire-diagnostic-obd2", name: "Appareil de diagnostic OBD2 (EOBD)", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 89.9, imagePath: "/images/products/accessoires/diagnostic-obd2.png" }),
+  referenceProduct({ slug: "accessoire-cle-vidange-8-10mm", name: "Clé de vidange carrée 8 mm / 10 mm", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 3.9, imagePath: "/images/products/accessoires/cle-vidange-8-10mm.png" }),
+  referenceProduct({ slug: "accessoire-nettoyant-plastique-michelin", name: "Nettoyant plastique MICHELIN 500 ml — fraîcheur d’été", brand: "MICHELIN", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 6.9, imagePath: "/images/products/accessoires/nettoyant-plastique-michelin.png" }),
+];
+
 const productRecords = [
   ...baseProducts,
   ...extraProducts.map((product, index) => ({ ...product, id: `p${index + 13}` })),
@@ -181,15 +255,38 @@ const batteryImages: Record<string, string> = {
 };
 
 const batteryScreenshotSource = "https://github.com/oardietadb/mister-auto-final-demo/blob/main/batteries.png";
+const referenceScreenshotSources: Partial<Record<CategorySlug, string>> = {
+  freinage: "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+  pneus: "https://github.com/oardietadb/mister-auto-final-demo/blob/main/pneus.png",
+  "huile-moteur": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+  accessoires: "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+};
+const referenceProductImages = new Map(referenceProducts.map((product) => [product.slug, product.imagePath]));
+const replacedProductCategories = new Set<CategorySlug>(["pneus", "huile-moteur", "accessoires"]);
+const catalogRecords = [
+  ...productRecords.map((product) => ({
+    ...product,
+    listed: product.listed !== false
+      && product.category !== "freinage"
+      && !replacedProductCategories.has(product.category)
+  })),
+  ...referenceProducts,
+];
 
-export const products: Product[] = productRecords.map((product) => ({
-  ...product,
-  image: batteryImages[product.reference] ?? null,
-  imageAlt: product.name,
-  imageSourceUrl: batteryImages[product.reference] ? batteryScreenshotSource : null,
-  imageStatus: batteryImages[product.reference] ? "matched" : "unavailable",
-  listed: product.listed !== false,
-}));
+export const products: Product[] = catalogRecords.map((product) => {
+  const image = batteryImages[product.reference] ?? referenceProductImages.get(product.slug) ?? null;
+  const imageSourceUrl = batteryImages[product.reference]
+    ? batteryScreenshotSource
+    : image ? referenceScreenshotSources[product.category] ?? null : null;
+  return {
+    ...product,
+    image,
+    imageAlt: product.name,
+    imageSourceUrl,
+    imageStatus: image ? "matched" : "unavailable",
+    listed: product.listed !== false,
+  };
+});
 
 export const listedProducts = products.filter((product) => product.listed);
 
@@ -202,8 +299,8 @@ export const productImageAudit = listedProducts.map(({ slug, reference, imageSou
   note: imageStatus === "matched" ? null : "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée.",
 }));
 
-export const formatPrice = (price: number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(price);
+export const formatPrice = (price: number | null) =>
+  price === null ? "Prix indisponible" : new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(price);
 export const findProduct = (slug: string) => products.find((product) => product.slug === slug);
 export const findCategory = (slug: string) => categories.find((category) => category.slug === slug);
 export const findCategoryType = (slug: string) => categoryTypes.find((type) => type.slug === slug);
