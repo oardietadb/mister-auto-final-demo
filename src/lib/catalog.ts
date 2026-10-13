@@ -42,7 +42,14 @@ export type Product = {
   color: string;
   description: string;
   tags: string[];
+  image: string | null;
+  imageAlt: string;
+  imageSourceUrl: string | null;
+  imageStatus: "matched" | "unavailable";
+  listed: boolean;
 };
+
+type ProductRecord = Omit<Product, "image" | "imageAlt" | "imageSourceUrl" | "imageStatus" | "listed"> & { listed?: boolean };
 
 export const categoryTypes: CategoryType[] = [
   { slug: "plaquettes-de-frein", category: "freinage", name: "Plaquettes de frein", description: "Des plaquettes adaptées à chaque essieu et à chaque conduite." },
@@ -65,11 +72,11 @@ export const categories: Category[] = [
   { slug: "pieces-occasion", name: "Pièces d’occasion", eyebrow: "La seconde vie des pièces", description: "Des pièces auto d’occasion vérifiées, plus accessibles.", icon: "↻", image: "linear-gradient(145deg,#e8e9f2,#c9cce1)", accent: "#6067a2", types: categoryTypes.filter((type) => type.category === "pieces-occasion") },
 ];
 
-export const products: Product[] = [
+const baseProducts: ProductRecord[] = [
   { id: "p1", slug: "plaquettes-frein-ate-ceramic", name: "Jeu de 4 plaquettes de frein ATE Ceramic", brand: "ATE", category: "freinage", categoryType: "plaquettes-de-frein", reference: "ATE-13.0470", price: 53.9, rating: 4.8, reviews: 126, stock: "En stock — expédié sous 24 h", icon: "◉", color: "#e5edf3", description: "Freinage silencieux et performant. Jeu de plaquettes pour essieu avant, conçu pour limiter la poussière de frein.", tags: ["Avant", "Faible poussière", "Montage facile"] },
   { id: "p2", slug: "disques-frein-brembo", name: "Disque de frein ventilé BREMBO", brand: "BREMBO", category: "freinage", categoryType: "disques-de-frein", reference: "BRE-09.9772", price: 68.5, rating: 4.7, reviews: 89, stock: "En stock — expédié sous 24 h", icon: "◉", color: "#eee9e6", description: "Disque de frein ventilé à haut rendement, fabriqué selon les standards de qualité du constructeur.", tags: ["Avant", "Vendu à l’unité", "Ventilé"] },
-  { id: "p3", slug: "batterie-varta-blue-dynamic", name: "Batterie VARTA Blue Dynamic 74 Ah", brand: "VARTA", category: "batteries", categoryType: "batteries-auto", reference: "VAR-D24", price: 98.9, rating: 4.9, reviews: 204, stock: "En stock — livraison rapide", icon: "▣", color: "#e8f0e8", description: "Batterie fiable au quotidien, puissance de démarrage élevée et technologie sans entretien.", tags: ["74 Ah", "750 A", "Sans entretien"] },
-  { id: "p4", slug: "batterie-bosch-s4", name: "Batterie BOSCH S4 60 Ah", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "BOS-0092S40050", price: 86.4, rating: 4.6, reviews: 97, stock: "Temporairement indisponible", available: false, icon: "▣", color: "#e9edf3", description: "Démarrage fiable et puissance adaptée à de nombreux véhicules récents.", tags: ["60 Ah", "540 A", "12 V"] },
+  { id: "p3", slug: "batterie-varta-blue-dynamic", name: "Batterie VARTA Blue Dynamic 74 Ah", brand: "VARTA", category: "batteries", categoryType: "batteries-auto", reference: "VAR-D24", price: 98.9, rating: 4.9, reviews: 204, stock: "En stock — livraison rapide", icon: "▣", color: "#e8f0e8", description: "Batterie fiable au quotidien, puissance de démarrage élevée et technologie sans entretien.", tags: ["74 Ah", "750 A", "Sans entretien"], listed: false },
+  { id: "p4", slug: "batterie-bosch-s4", name: "Batterie BOSCH S4 60 Ah", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "BOS-0092S40050", price: 86.4, rating: 4.6, reviews: 97, stock: "Temporairement indisponible", available: false, icon: "▣", color: "#e9edf3", description: "Démarrage fiable et puissance adaptée à de nombreux véhicules récents.", tags: ["60 Ah", "540 A", "12 V"], listed: false },
   { id: "p5", slug: "pneu-michelin-primacy-4", name: "Pneu MICHELIN Primacy 4+ 205/55 R16", brand: "MICHELIN", category: "pneus", categoryType: "pneus-auto", reference: "MIC-2055516", price: 91.2, rating: 4.9, reviews: 316, stock: "En stock — livraison offerte dès 2 pneus", icon: "◉", color: "#e8edf0", description: "Pneu été premium offrant une excellente longévité et une sécurité durable sur sol mouillé.", tags: ["Été", "205/55 R16", "A/A"] },
   { id: "p6", slug: "pneu-goodyear-vector-4seasons", name: "Pneu GOODYEAR Vector 4Seasons Gen-3", brand: "GOODYEAR", category: "pneus", categoryType: "pneus-auto", reference: "GOO-4S205", price: 84.9, rating: 4.7, reviews: 182, stock: "En stock — livraison rapide", icon: "◉", color: "#edf0e8", description: "Pneu toutes saisons pour garder le contrôle tout au long de l’année.", tags: ["4 saisons", "205/55 R16", "M+S"] },
   { id: "p7", slug: "huile-castrol-edge-5w30", name: "Huile moteur CASTROL EDGE 5W-30 LL", brand: "CASTROL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "CAS-15669E", price: 42.9, rating: 4.8, reviews: 143, stock: "En stock — expédié sous 24 h", icon: "▤", color: "#f3eadb", description: "Huile moteur synthétique conçue pour protéger les moteurs performants et réduire les frictions.", tags: ["5W-30", "5 litres", "Synthétique"] },
@@ -80,7 +87,7 @@ export const products: Product[] = [
   { id: "p12", slug: "kit-entretien-frein", name: "Kit d’entretien et nettoyage des freins", brand: "ATE", category: "freinage", categoryType: "plaquettes-de-frein", reference: "ATE-700015", price: 18.7, rating: 4.6, reviews: 45, stock: "En stock — expédié sous 24 h", icon: "▤", color: "#edf0f2", description: "Un kit pratique pour l’entretien courant de votre système de freinage.", tags: ["Entretien", "Kit complet", "Usage atelier"] },
 ];
 
-const extraProducts: Array<Omit<Product, "id">> = [
+const extraProducts: Array<Omit<ProductRecord, "id">> = [
   ...([
     ["plaquettes-de-frein", "freinage", "Plaquettes de frein BOSCH QuietCast", "BOSCH", "BOS-BP1234", 39.9, "Plaquettes avant avec réduction du bruit et de la poussière."],
     ["plaquettes-de-frein", "freinage", "Jeu de plaquettes TRW Cotec", "TRW", "TRW-GDB1550", 44.5, "Revêtement de transfert pour un freinage efficace dès les premiers kilomètres."],
@@ -125,14 +132,75 @@ const extraProducts: Array<Omit<Product, "id">> = [
       reviews: 28 + index * 7,
       stock: "En stock — expédié sous 24 h",
       icon: categoryInfo?.icon ?? "◉",
-      color: products.find((product) => product.category === category)?.color ?? "#e9eef2",
+      color: baseProducts.find((product) => product.category === category)?.color ?? "#e9eef2",
       description,
       tags: ["Sélection Mister Auto", "Garantie fabricant"],
-    } satisfies Omit<Product, "id">;
+      listed: categoryType !== "batteries-auto",
+    } satisfies Omit<ProductRecord, "id">;
   }),
 ];
 
-products.push(...extraProducts.map((product, index) => ({ ...product, id: `p${index + 13}` })));
+const batteryProducts: Array<Omit<ProductRecord, "id">> = [
+  { slug: "batterie-bolk-m040002", name: "Batterie de voiture 70 Ah / 760 A AGM", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040002", price: 132.23, rating: 4.5, reviews: 44, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie AGM 70 Ah avec courant de démarrage de 760 A, adaptée aux véhicules équipés du système Start & Stop.", tags: ["70 Ah", "760 A", "AGM", "Start & Stop", "12 V", "À saisir"] },
+  { slug: "batterie-bolk-m040006", name: "Batterie de voiture 60 Ah / 560 A EFB", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040006", price: 92.51, rating: 4.8, reviews: 12, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie EFB 60 Ah délivrant 560 A, conçue pour les véhicules avec Start & Stop.", tags: ["60 Ah", "560 A", "EFB", "Start & Stop", "12 V"] },
+  { slug: "batterie-bolk-m040026", name: "Batterie de voiture 74 Ah / 680 A", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040026", price: 75.18, rating: 4.8, reviews: 149, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie 74 Ah avec courant de démarrage de 680 A pour un démarrage fiable au quotidien.", tags: ["74 Ah", "680 A", "12 V"] },
+  { slug: "batterie-bolk-m010022", name: "Batterie de voiture haute performance 77 Ah / 760 A", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M010022", price: 86.78, rating: 4.5, reviews: 23, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie haute performance de 77 Ah et 760 A pour les véhicules fortement équipés.", tags: ["77 Ah", "760 A", "Haute performance", "12 V"] },
+  { slug: "batterie-bolk-m040003", name: "Batterie de voiture 80 Ah / 800 A AGM", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040003", price: 148.19, rating: 4.0, reviews: 5, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie AGM 80 Ah et 800 A destinée aux véhicules équipés du système Start & Stop.", tags: ["80 Ah", "800 A", "AGM", "Start & Stop", "12 V"] },
+  { slug: "batterie-bosch-0092-s5a-110", name: "Batterie de voiture 80 Ah / 800 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S5A 110 / S5 A11", price: 189.14, rating: 4.7, reviews: 12, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH de 80 Ah avec courant de démarrage de 800 A.", tags: ["80 Ah", "800 A", "12 V"] },
+  { slug: "batterie-exide-ek820", name: "Batterie de voiture 82 Ah / 800 A", brand: "EXIDE", category: "batteries", categoryType: "batteries-auto", reference: "EK820", price: 162.23, rating: 5, reviews: 2, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie EXIDE de 82 Ah et 800 A, modèle EK820.", tags: ["82 Ah", "800 A", "12 V"] },
+  { slug: "batterie-bosch-0092-s40-080", name: "Batterie de voiture 74 Ah / 680 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S40 080 / S4 008", price: 110.89, rating: 4.8, reviews: 21, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH S4 de 74 Ah avec courant de démarrage de 680 A.", tags: ["74 Ah", "680 A", "12 V"] },
+  { slug: "batterie-bosch-0092-s50-080", name: "Batterie de voiture 77 Ah / 780 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S50 080 / S5 008", price: 125.78, rating: 4.6, reviews: 16, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH S5 de 77 Ah et 780 A.", tags: ["77 Ah", "780 A", "12 V"] },
+  { slug: "batterie-bosch-0092-s4e-051", name: "Batterie de voiture 60 Ah / 640 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S4E 051 / S4 E05", price: 115.99, rating: 4.4, reviews: 8, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH S4 de 60 Ah et 640 A.", tags: ["60 Ah", "640 A", "12 V"] },
+  { slug: "batterie-bproauto-04220002", name: "Batterie de voiture 70 Ah / 760 A", brand: "BPROAUTO", category: "batteries", categoryType: "batteries-auto", reference: "PRO-04220002", price: 135.76, rating: 4.6, reviews: 6, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BPROAUTO de 70 Ah avec courant de démarrage de 760 A.", tags: ["70 Ah", "760 A", "12 V"] },
+  { slug: "batterie-yuasa-ybx9115", name: "Batterie de voiture 80 Ah / 800 A", brand: "YUASA", category: "batteries", categoryType: "batteries-auto", reference: "YBX9115", price: 180.62, rating: 0, reviews: 0, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie YUASA de 80 Ah avec courant de démarrage de 800 A, référence YBX9115.", tags: ["80 Ah", "800 A", "12 V"] },
+  { slug: "batterie-bproauto-04220003", name: "Batterie de voiture 80 Ah / 800 A", brand: "BPROAUTO", category: "batteries", categoryType: "batteries-auto", reference: "PRO-04220003", price: 152.15, rating: 4.0, reviews: 5, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BPROAUTO de 80 Ah et 800 A.", tags: ["80 Ah", "800 A", "12 V"] },
+  { slug: "batterie-bproauto-04220026", name: "Batterie de voiture 74 Ah / 680 A", brand: "BPROAUTO", category: "batteries", categoryType: "batteries-auto", reference: "PRO-04220026", price: 77.18, rating: 4.8, reviews: 12, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BPROAUTO de 74 Ah avec courant de démarrage de 680 A.", tags: ["74 Ah", "680 A", "12 V"] },
+];
+
+const productRecords = [
+  ...baseProducts,
+  ...extraProducts.map((product, index) => ({ ...product, id: `p${index + 13}` })),
+  ...batteryProducts.map((product) => ({ ...product, id: `battery-${product.reference.toLocaleLowerCase("fr").replace(/[^a-z0-9]+/g, "-")}` })),
+];
+
+const batteryImages: Record<string, string> = {
+  "BOL-M040002": "/images/products/batteries/bolk-m040002.png",
+  "BOL-M040006": "/images/products/batteries/bolk-m040006.png",
+  "BOL-M040026": "/images/products/batteries/bolk-m040026.png",
+  "BOL-M010022": "/images/products/batteries/bolk-m010022.png",
+  "BOL-M040003": "/images/products/batteries/bolk-m040003.png",
+  "0 092 S5A 110 / S5 A11": "/images/products/batteries/bosch-0092-s5a-110.png",
+  EK820: "/images/products/batteries/exide-ek820.png",
+  "0 092 S40 080 / S4 008": "/images/products/batteries/bosch-0092-s40-080.png",
+  "0 092 S50 080 / S5 008": "/images/products/batteries/bosch-0092-s50-080.png",
+  "0 092 S4E 051 / S4 E05": "/images/products/batteries/bosch-0092-s4e-051.png",
+  "PRO-04220002": "/images/products/batteries/bproauto-04220002.png",
+  YBX9115: "/images/products/batteries/yuasa-ybx9115.png",
+  "PRO-04220003": "/images/products/batteries/bproauto-04220003.png",
+  "PRO-04220026": "/images/products/batteries/bproauto-04220026.png",
+};
+
+const batteryScreenshotSource = "https://github.com/oardietadb/mister-auto-final-demo/blob/main/batteries.png";
+
+export const products: Product[] = productRecords.map((product) => ({
+  ...product,
+  image: batteryImages[product.reference] ?? null,
+  imageAlt: product.name,
+  imageSourceUrl: batteryImages[product.reference] ? batteryScreenshotSource : null,
+  imageStatus: batteryImages[product.reference] ? "matched" : "unavailable",
+  listed: product.listed !== false,
+}));
+
+export const listedProducts = products.filter((product) => product.listed);
+
+export const productImageAudit = listedProducts.map(({ slug, reference, imageSourceUrl, image, imageStatus }) => ({
+  slug,
+  reference,
+  sourceUrl: imageSourceUrl,
+  imagePath: image,
+  status: imageStatus,
+  note: imageStatus === "matched" ? null : "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée.",
+}));
 
 export const formatPrice = (price: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(price);
