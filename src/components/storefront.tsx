@@ -3,25 +3,58 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState, useId, type FormEvent } from "react";
-import { categories, findCategory, findCategoryType, findProduct, formatPrice, products, type Category, type Product } from "@/lib/catalog";
+import { categories, findCategory, findCategoryType, findProduct, formatPrice, listedProducts, products, type Category, type Product } from "@/lib/catalog";
 import { trackEvent } from "@/lib/analytics";
 import { demoAuthAdapter } from "@/lib/auth";
 import { validateVehicleSelection, vehicleEngines, vehicleMakes } from "@/lib/vehicles";
 import { useStore } from "@/lib/store";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, layout = "standard" }: { product: Product; layout?: "standard" | "battery" }) {
   const { addToCart, vehicle } = useStore();
+  const [compared, setCompared] = useState(false);
+  if (layout === "battery") {
+    return (
+      <article className="product-card battery-product-card">
+        <div className="battery-product-main">
+          <Link className="battery-product-image" href={`/produit/${product.slug}`}>
+            {product.image
+              ? <Image src={product.image} alt={product.imageAlt} width={110} height={105} sizes="110px" />
+              : <span aria-hidden="true">{product.icon}</span>}
+          </Link>
+          <div className="battery-product-info">
+            <span className="battery-brand">{product.brand}</span>
+            <Link href={`/produit/${product.slug}`} className="battery-product-name">{product.name}</Link>
+            <span className="product-reference">{product.reference === "Non indiquée" ? "Référence non indiquée" : `Réf. ${product.reference}`}</span>
+            {product.tags.includes("À saisir") && <span className="battery-promotion-tag">À saisir</span>}
+            {product.reviews > 0 && <div className="rating"><span>★★★★★</span> <small>{product.reviews} avis</small></div>}
+            <p className={product.available === false ? "stock unavailable" : "stock"}>✓ {product.stock}</p>
+            <strong className="battery-product-price">{formatPrice(product.price)} <small>TTC</small></strong>
+          </div>
+        </div>
+        <div className="battery-product-actions">
+          <button className={compared ? "battery-compare selected" : "battery-compare"} type="button" aria-pressed={compared} onClick={() => setCompared((selected) => !selected)}>
+            <span aria-hidden="true">{compared ? "✓" : "□"}</span> {compared ? "Sélectionné" : "Comparer"}
+          </button>
+          <button className="button button-primary button-small" disabled={product.available === false} onClick={() => addToCart(product)}>
+            {product.available === false ? "Indisponible" : "Ajouter au panier"}
+          </button>
+        </div>
+      </article>
+    );
+  }
   return (
     <article className="product-card">
       <Link className="product-image" href={`/produit/${product.slug}`} style={{ background: product.color }}>
         <span className="brand-chip">{product.brand}</span>
-        <span className="product-illustration" aria-hidden="true">{product.icon}</span>
+        {product.image
+          ? <Image className="product-photo" src={product.image} alt={product.imageAlt} fill sizes="(max-width: 680px) 50vw, (max-width: 1000px) 33vw, 25vw" />
+          : <span className="product-illustration" aria-hidden="true">{product.icon}</span>}
         <span className="compatibility">{vehicle ? "✓ Compatibilité à confirmer" : "Ajoutez votre véhicule pour vérifier"}</span>
       </Link>
       <div className="product-content">
         <span className="product-reference">Réf. {product.reference}</span>
         <Link href={`/produit/${product.slug}`} className="product-name">{product.name}</Link>
-        <div className="rating"><span>★★★★★</span> {product.rating} <small>({product.reviews} avis)</small></div>
+        {product.reviews > 0 && <div className="rating"><span>★★★★★</span> {product.rating} <small>({product.reviews} avis)</small></div>}
         <p className={product.available === false ? "stock unavailable" : "stock"}>● {product.stock}</p>
         <div className="product-buy"><strong>{formatPrice(product.price)}</strong><button className="button button-primary button-small" disabled={product.available === false} onClick={() => addToCart(product)}>{product.available === false ? "Indisponible" : "Ajouter au panier"}</button></div>
       </div>
@@ -29,8 +62,8 @@ export function ProductCard({ product }: { product: Product }) {
   );
 }
 
-export function ProductGrid({ items }: { items: Product[] }) {
-  return <div className="product-grid">{items.map((product) => <ProductCard key={product.id} product={product} />)}</div>;
+export function ProductGrid({ items, layout = "standard" }: { items: Product[]; layout?: "standard" | "battery" }) {
+  return <div className={`product-grid${layout === "battery" ? " battery-product-grid" : ""}`}>{items.map((product) => <ProductCard key={product.id} product={product} layout={layout} />)}</div>;
 }
 
 export function CategoryTiles() {
@@ -46,7 +79,7 @@ export function CategoryTypes({ category }: { category: Category }) {
   return <div className="category-type-grid">{category.types.map((type) => (
     <Link className="category-type-card" href={`/categories/${category.slug}/${type.slug}`} key={type.slug}>
       <span><strong>{type.name}</strong><small>{type.description}</small></span>
-      <span className="type-count">{products.filter((product) => product.categoryType === type.slug).length} références <b>→</b></span>
+      <span className="type-count">{listedProducts.filter((product) => product.categoryType === type.slug).length} références <b>→</b></span>
     </Link>
   ))}</div>;
 }
@@ -109,8 +142,8 @@ export function SectionHeading({ kicker, title, action }: { kicker?: string; tit
 }
 
 export function HomePage() {
-  const popular = [products[0], products[2], products[4], products[6]];
-  const seasonal = products.filter((product) => ["chaines-neige", "pneus", "batteries"].includes(product.category) && product.available !== false).slice(0, 4);
+  const popular = listedProducts.filter((product) => ["reference-plaquette-delphi-lp3302", "battery-bol-m040002", "reference-pneu-goodyear-efficientgrip-528503", "reference-huile-mannol-legend-mn7730-5"].includes(product.id));
+  const seasonal = listedProducts.filter((product) => ["reference-pneu-goodyear-efficientgrip-528503", "reference-pneu-michelin-energy-saver-771116", "battery-bol-m040002", "reference-pneu-dunlop-bluresponse-528520"].includes(product.id));
   return <div>
     <section className="hero page-width">
       <div className="hero-copy"><span className="eyebrow">MISTER AUTO, À VOS CÔTÉS SUR LA ROUTE</span><h1>Les bons produits auto,<br /><span>au bon moment.</span></h1><p>Des milliers de références, des marques reconnues et des conseils pour entretenir votre véhicule.</p><Link href="/categories" className="button button-primary">Découvrir nos pièces <span>→</span></Link><div className="hero-proof"><span>★★★★★</span> 4,6/5 · La confiance de nos clients</div></div>
@@ -168,28 +201,89 @@ export function ListingPage({ slug, typeSlug, query }: { slug?: string; typeSlug
   const category = slug ? findCategory(slug) : undefined;
   const categoryType = typeSlug ? findCategoryType(typeSlug) : undefined;
   const [sort, setSort] = useState("popular");
-  const [maxPrice, setMaxPrice] = useState(250);
+  const [maxPrice, setMaxPrice] = useState(2000);
   const [brandFilter, setBrandFilter] = useState("");
   const [inStockOnly, setInStockOnly] = useState(true);
+  const [batteryStartStop, setBatteryStartStop] = useState(false);
+  const [batteryAmperage, setBatteryAmperage] = useState("");
+  const [batteryStartingCurrent, setBatteryStartingCurrent] = useState("");
+  const [batteryTechnology, setBatteryTechnology] = useState("");
+  const [batteryMinimumRating, setBatteryMinimumRating] = useState(0);
+  const { vehicle } = useStore();
   const items = useMemo(() => {
     const search = query?.toLocaleLowerCase("fr");
     const validCategoryType = !typeSlug || categoryType?.category === slug;
-    const filtered = products.filter((product) => validCategoryType && (!slug || product.category === slug) && (!typeSlug || product.categoryType === typeSlug) && (!search || `${product.name} ${product.brand} ${product.reference}`.toLocaleLowerCase("fr").includes(search)) && product.price <= maxPrice && (!brandFilter || product.brand === brandFilter) && (!inStockOnly || product.available !== false));
-    if (sort === "price-asc") filtered.sort((a, b) => a.price - b.price);
-    if (sort === "price-desc") filtered.sort((a, b) => b.price - a.price);
+    const filtered = listedProducts.filter((product) => validCategoryType && (!slug || product.category === slug) && (!typeSlug || product.categoryType === typeSlug) && (!search || `${product.name} ${product.brand} ${product.reference}`.toLocaleLowerCase("fr").includes(search)) && (product.price === null || product.price <= maxPrice) && (!brandFilter || product.brand === brandFilter) && (!inStockOnly || product.available !== false) && (!batteryStartStop || product.tags.includes("Start & Stop")) && (!batteryAmperage || product.tags.includes(batteryAmperage)) && (!batteryStartingCurrent || product.tags.includes(batteryStartingCurrent)) && (!batteryTechnology || product.tags.includes(batteryTechnology)) && (!batteryMinimumRating || product.rating >= batteryMinimumRating));
+    if (sort === "price-asc") filtered.sort((a, b) => (a.price ?? Number.MAX_SAFE_INTEGER) - (b.price ?? Number.MAX_SAFE_INTEGER));
+    if (sort === "price-desc") filtered.sort((a, b) => (b.price ?? Number.MAX_SAFE_INTEGER) - (a.price ?? Number.MAX_SAFE_INTEGER));
     return filtered;
-  }, [slug, typeSlug, categoryType?.category, query, sort, maxPrice, brandFilter, inStockOnly]);
+  }, [slug, typeSlug, categoryType?.category, query, sort, maxPrice, brandFilter, inStockOnly, batteryStartStop, batteryAmperage, batteryStartingCurrent, batteryTechnology, batteryMinimumRating]);
   useEffect(() => {
     trackEvent({ type: "productListView", category: categoryType?.name ?? category?.name ?? query ?? "Catalogue", productIds: items.map((product) => product.id) });
   }, [slug, typeSlug, query, category?.name, categoryType?.name, items]);
-  const brands = [...new Set(products.filter((product) => (!slug || product.category === slug) && (!typeSlug || product.categoryType === typeSlug)).map((product) => product.brand))];
+  const brands = [...new Set(listedProducts.filter((product) => (!slug || product.category === slug) && (!typeSlug || product.categoryType === typeSlug)).map((product) => product.brand))];
+  const isBatteryListing = slug === "batteries" && !query;
+  if (isBatteryListing) {
+    return <div className="page-width section-page battery-category-page">
+      <div className="breadcrumb"><Link href="/">Accueil</Link> / Nos pièces détachées auto / Électricité auto / Batterie de démarrage / <strong>Batterie voiture</strong></div>
+      <div className="battery-category-heading">
+        <h1>BATTERIE VOITURE</h1>
+        <div className="battery-category-tabs"><span aria-current="page">Batterie voiture</span><span>Batteries camion</span><span>Batterie à décharge lente</span></div>
+      </div>
+      <div className="battery-fitment-notice">
+        <span aria-hidden="true">✓</span>
+        <p>{vehicle ? <>Véhicule sélectionné : <strong>{vehicle.make} {vehicle.model}</strong>. Vérifiez la compatibilité avant commande.</> : "Ajoutez votre véhicule pour vérifier la compatibilité des batteries proposées."}</p>
+        <Link href="/garage">{vehicle ? "Gérer mon véhicule" : "Ajouter un véhicule"} →</Link>
+      </div>
+      <div className="battery-listing-layout">
+        <aside className="battery-filters">
+          <h2><span aria-hidden="true">☷</span> FILTRER | TRIER <small>{items.length} produits</small></h2>
+          <div className="battery-filter-group">
+            <strong>Trier</strong>
+            <label><input type="radio" name="battery-sort" checked={sort === "popular"} onChange={() => setSort("popular")} /> Par pertinence</label>
+            <label><input type="radio" name="battery-sort" checked={sort === "price-asc"} onChange={() => setSort("price-asc")} /> Du - cher au + cher</label>
+            <label><input type="radio" name="battery-sort" checked={sort === "price-desc"} onChange={() => setSort("price-desc")} /> Du + cher au - cher</label>
+          </div>
+          <div className="battery-filter-group">
+            <strong>Caractéristiques techniques</strong>
+            <details><summary>Start and Stop</summary><label><input type="checkbox" checked={batteryStartStop} onChange={(event) => setBatteryStartStop(event.target.checked)} /> Start &amp; Stop</label></details>
+            <details><summary>Ampérage</summary>
+              <select aria-label="Ampérage" value={batteryAmperage} onChange={(event) => setBatteryAmperage(event.target.value)}><option value="">Tous les ampérages</option>{["60 Ah", "70 Ah", "74 Ah", "77 Ah", "80 Ah", "82 Ah"].map((value) => <option key={value}>{value}</option>)}</select>
+            </details>
+            <details><summary>Puissance au démarrage (A)</summary>
+              <select aria-label="Puissance au démarrage" value={batteryStartingCurrent} onChange={(event) => setBatteryStartingCurrent(event.target.value)}><option value="">Toutes les puissances</option>{["560 A", "640 A", "680 A", "760 A", "780 A", "800 A"].map((value) => <option key={value}>{value}</option>)}</select>
+            </details>
+            <details><summary>Technologie</summary>
+              <select aria-label="Technologie de batterie" value={batteryTechnology} onChange={(event) => setBatteryTechnology(event.target.value)}><option value="">Toutes les technologies</option>{["AGM", "EFB"].map((value) => <option key={value}>{value}</option>)}</select>
+            </details>
+            <details><summary>Dimensions (mm)</summary><span>Les dimensions sont à vérifier sur la fiche correspondant à votre véhicule.</span></details>
+          </div>
+          <div className="battery-filter-group">
+            <strong>Critères produits</strong>
+            <details><summary>Avis client</summary>
+              <select aria-label="Note minimale" value={batteryMinimumRating} onChange={(event) => setBatteryMinimumRating(Number(event.target.value))}><option value="0">Toutes les notes</option><option value="4">4 étoiles et plus</option><option value="4.5">4,5 étoiles et plus</option></select>
+            </details>
+          </div>
+          <div className="battery-filter-group">
+            <strong>Marque</strong>
+            <select value={brandFilter} onChange={(event) => setBrandFilter(event.target.value)}><option value="">Toutes les marques</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select>
+          </div>
+          <button className="clear-filter" type="button" onClick={() => { setMaxPrice(250); setBrandFilter(""); setSort("popular"); setInStockOnly(false); setBatteryStartStop(false); setBatteryAmperage(""); setBatteryStartingCurrent(""); setBatteryTechnology(""); setBatteryMinimumRating(0); }}>Effacer les filtres</button>
+        </aside>
+        <main className="battery-listing-results">
+          <div className="battery-results-toolbar"><strong>{items.length} produits</strong><span>Prix TTC, hors frais de livraison</span></div>
+          {items.length ? <ProductGrid items={items} layout="battery" /> : <div className="empty-state"><h2>Aucune batterie trouvée</h2><p>Modifiez vos filtres pour afficher d’autres références.</p></div>}
+        </main>
+      </div>
+    </div>;
+  }
   return <div className="page-width section-page">
     <div className="breadcrumb"><Link href="/">Accueil</Link> / {query ? "Recherche" : "Pièces auto"} {category && <>/ <Link href={`/categories/${category.slug}`}>{category.name}</Link></>} {categoryType && `/ ${categoryType.name}`}</div>
-    {category && <div className="listing-hero" style={{ background: category.image }}><div><span className="eyebrow">{category.eyebrow}</span><h1>{categoryType?.name ?? category.name}</h1><p>{categoryType?.description ?? category.description}</p></div><span className="listing-hero-icon">{category.icon}</span></div>}
+    {category && <div className={`listing-hero${category.heroImage ? " listing-hero-with-image" : ""}`} style={{ background: category.image }}>{category.heroImage && <Image className="listing-hero-background" src={category.heroImage} alt={`Illustration de la catégorie ${category.name}`} fill sizes="(max-width: 680px) 100vw, 1180px" /> }<div className="listing-hero-copy"><span className="eyebrow">{category.eyebrow}</span><h1>{categoryType?.name ?? category.name}</h1><p>{categoryType?.description ?? category.description}</p></div>{!category.heroImage && <span className="listing-hero-icon">{category.icon}</span>}</div>}
     {category && !categoryType && <section className="catalog-types"><SectionHeading kicker="AFFINER PAR FAMILLE" title={`Les produits ${category.name.toLocaleLowerCase("fr")}`} /><CategoryTypes category={category} /></section>}
     {!category && <><span className="eyebrow">PIÈCES ET ACCESSOIRES AUTO</span><h1>{query ? `Résultats pour « ${query} »` : "Toutes nos pièces auto"}</h1><p className="page-intro">{query ? `${items.length} résultat${items.length > 1 ? "s" : ""} dans notre catalogue.` : "Des pièces sélectionnées pour entretenir votre véhicule."}</p></>}
     <div className="listing-toolbar"><strong>{items.length} produit{items.length > 1 ? "s" : ""}</strong><label>Trier par <select value={sort} onChange={(event) => setSort(event.target.value)}><option value="popular">Popularité</option><option value="price-asc">Prix croissant</option><option value="price-desc">Prix décroissant</option></select></label></div>
-    <div className="listing-layout"><aside className="filters"><h2>Affiner ma recherche</h2><div><strong>Prix maximum</strong><input aria-label="Prix maximum" type="range" min="15" max="250" value={maxPrice} onChange={(event) => setMaxPrice(Number(event.target.value))} /><span>Jusqu’à {formatPrice(maxPrice)}</span></div><div><strong>Marque</strong><select value={brandFilter} onChange={(event) => setBrandFilter(event.target.value)}><option value="">Toutes les marques</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></div><div><strong>Disponibilité</strong><label className="check-label"><input type="checkbox" checked={inStockOnly} onChange={(event) => setInStockOnly(event.target.checked)} /> En stock uniquement</label></div><button className="clear-filter" onClick={() => { setMaxPrice(250); setBrandFilter(""); setSort("popular"); setInStockOnly(false); }}>Effacer les filtres</button></aside>
+    <div className="listing-layout"><aside className="filters"><h2>Affiner ma recherche</h2><div><strong>Prix maximum</strong><input aria-label="Prix maximum" type="range" min="15" max="2000" value={maxPrice} onChange={(event) => setMaxPrice(Number(event.target.value))} /><span>Jusqu’à {formatPrice(maxPrice)}</span></div><div><strong>Marque</strong><select value={brandFilter} onChange={(event) => setBrandFilter(event.target.value)}><option value="">Toutes les marques</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></div><div><strong>Disponibilité</strong><label className="check-label"><input type="checkbox" checked={inStockOnly} onChange={(event) => setInStockOnly(event.target.checked)} /> En stock uniquement</label></div><button className="clear-filter" onClick={() => { setMaxPrice(2000); setBrandFilter(""); setSort("popular"); setInStockOnly(false); }}>Effacer les filtres</button></aside>
       <div>{items.length ? <ProductGrid items={items} /> : <div className="empty-state"><h2>Aucun produit trouvé</h2><p>Modifiez vos filtres ou essayez une autre recherche.</p><Link className="button button-secondary" href="/categories">Voir les catégories</Link></div>}</div>
     </div>
   </div>;
@@ -200,13 +294,33 @@ export function ProductDetailPage({ slug }: { slug: string }) {
   const product = findProduct(slug);
   const [added, setAdded] = useState(false);
   useEffect(() => {
-    if (product) {
+    if (product && product.price !== null) {
       trackEvent({ type: "productView", productId: product.id, name: product.name, price: product.price });
     }
   }, [product, slug]);
   if (!product) return <div className="page-width section-page"><h1>Produit introuvable</h1><Link href="/categories">Retour au catalogue</Link></div>;
   const category = findCategory(product.category);
-  return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / <Link href={`/categories/${product.category}`}>{category?.name}</Link> / {product.name}</div><div className="detail-layout"><div className="detail-image" style={{ background: product.color }}><span className="brand-chip">{product.brand}</span><span>{product.icon}</span></div><div className="detail-info"><span className="eyebrow">{category?.name} · Réf. {product.reference}</span><h1>{product.name}</h1><div className="rating"><span>★★★★★</span> {product.rating} <small>({product.reviews} avis clients)</small></div><p className="detail-description">{product.description}</p><div className="compatibility-box"><span>✓</span><div><strong>Compatibilité à vérifier</strong><p>Identifiez votre véhicule pour confirmer que cette pièce est adaptée.</p><Link href="/garage">Sélectionner mon véhicule →</Link></div></div><p className={product.available === false ? "stock unavailable detail-stock" : "stock detail-stock"}>● {product.stock}</p><div className="detail-price">{formatPrice(product.price)} <small>TTC</small></div><button className="button button-primary detail-add" disabled={product.available === false} onClick={() => { addToCart(product); setAdded(true); }}>{product.available === false ? "Temporairement indisponible" : added ? "✓ Ajouté au panier" : "Ajouter au panier"} {product.available !== false && <span>→</span>}</button><p className="delivery-note">↗ Paiement sécurisé · Retours sous 30 jours</p></div></div><section className="section"><SectionHeading title="Vous aimerez aussi" /><ProductGrid items={products.filter((item) => item.category === product.category && item.id !== product.id).slice(0, 4)} /></section></div>;
+  const recommendations = listedProducts.filter((item) => item.category === product.category && item.categoryType === product.categoryType && item.id !== product.id).slice(0, 4);
+  return <div className="page-width section-page">
+    <div className="breadcrumb"><Link href="/">Accueil</Link> / <Link href={`/categories/${product.category}`}>{category?.name}</Link> / {product.name}</div>
+    <div className="detail-layout">
+      <div className={`detail-image${product.category === "batteries" && product.image ? " battery-detail-image" : ""}`} style={{ background: product.color }}>
+        <span className="brand-chip">{product.brand}</span>
+        {product.image ? <Image className="product-photo product-photo-detail" src={product.image} alt={product.imageAlt} fill sizes="(max-width: 800px) 100vw, 50vw" priority /> : <span aria-hidden="true">{product.icon}</span>}
+      </div>
+      <div className="detail-info">
+        <span className="eyebrow">{category?.name}{product.reference === "Non indiquée" ? "" : ` · Réf. ${product.reference}`}</span><h1>{product.name}</h1>
+        {product.reviews > 0 && <div className="rating"><span>★★★★★</span> {product.rating} <small>({product.reviews} avis clients)</small></div>}
+        <p className="detail-description">{product.description}</p>
+        <div className="compatibility-box"><span>✓</span><div><strong>Compatibilité à vérifier</strong><p>Identifiez votre véhicule pour confirmer que cette pièce est adaptée.</p><Link href="/garage">Sélectionner mon véhicule →</Link></div></div>
+        <p className={product.available === false ? "stock unavailable detail-stock" : "stock detail-stock"}>● {product.stock}</p>
+        <div className="detail-price">{formatPrice(product.price)} {product.price !== null && <small>TTC</small>}</div>
+        <button className="button button-primary detail-add" disabled={product.available === false} onClick={() => { addToCart(product); setAdded(true); }}>{product.available === false ? "Temporairement indisponible" : added ? "✓ Ajouté au panier" : "Ajouter au panier"} {product.available !== false && <span>→</span>}</button>
+        <p className="delivery-note">↗ Paiement sécurisé · Retours sous 30 jours</p>
+      </div>
+    </div>
+    <section className="section"><SectionHeading title="Vous aimerez aussi" /><ProductGrid items={recommendations} layout={product.category === "batteries" ? "battery" : "standard"} /></section>
+  </div>;
 }
 
 export function CartPage() {
@@ -216,7 +330,7 @@ export function CartPage() {
   const [promoApplied, setPromoApplied] = useState(false);
   const lines = cart.map((line) => ({ ...line, product: products.find((product) => product.id === line.productId) })).filter((line): line is typeof line & { product: Product } => Boolean(line.product));
   const articleCount = lines.reduce((count, line) => count + line.quantity, 0);
-  const subtotal = lines.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
+  const subtotal = lines.reduce((sum, line) => sum + (line.product.price ?? 0) * line.quantity, 0);
   const discount = promoApplied ? subtotal * 0.1 : 0;
   const delivery = subtotal >= 59 || subtotal === 0 ? 0 : 5.9;
   function applyPromo(event: FormEvent<HTMLFormElement>) {
@@ -226,7 +340,7 @@ export function CartPage() {
     setPromoMessage(accepted ? "Code accepté : remise de 10 % appliquée." : "Code non reconnu. Essayez BIENVENUE10.");
   }
   if (!lines.length) return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon panier</div><div className="empty-state"><span className="empty-icon">🛒</span><h1>Votre panier est vide</h1><p>Découvrez notre sélection de pièces pour votre véhicule.</p><Link className="button button-primary" href="/categories">Continuer mes achats →</Link></div></div>;
-  return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon panier</div><h1>Votre panier <span className="subtle">({articleCount} article{articleCount !== 1 ? "s" : ""})</span></h1><div className="cart-layout"><section className="cart-items">{lines.map((line) => <article className="cart-line" key={line.productId}><div className="cart-product-art" style={{ background: line.product.color }}>{line.product.icon}</div><div className="cart-line-info"><Link href={`/produit/${line.product.slug}`}><strong>{line.product.name}</strong></Link><small>Réf. {line.product.reference}</small><span className="stock">● {line.product.stock}</span><button className="remove-link" onClick={() => removeFromCart(line.productId)}>Supprimer</button></div><div className="quantity-control"><button aria-label="Diminuer" onClick={() => setQuantity(line.productId, line.quantity - 1)}>−</button><span>{line.quantity}</span><button aria-label="Augmenter" onClick={() => setQuantity(line.productId, line.quantity + 1)}>+</button></div><strong className="line-price">{formatPrice(line.product.price * line.quantity)}</strong></article>)}<Link href="/categories" className="text-link">← Continuer mes achats</Link></section><aside className="order-card"><h2>Votre commande</h2><form className="promo-form" onSubmit={applyPromo}><label htmlFor="promo">Vous avez un code promo ?</label><div><input id="promo" value={promo} onChange={(event) => setPromo(event.target.value)} placeholder="Code promo" /><button className="button button-secondary">Appliquer</button></div>{promoMessage && <small>{promoMessage}</small>}</form><div className="order-row"><span>Sous-total</span><strong>{formatPrice(subtotal)}</strong></div>{discount > 0 && <div className="order-row"><span>Remise BIENVENUE10</span><strong>− {formatPrice(discount)}</strong></div>}<div className="order-row"><span>Livraison estimée</span><strong>{delivery === 0 ? "Offerte" : formatPrice(delivery)}</strong></div><div className="order-total"><strong>Total TTC</strong><strong>{formatPrice(subtotal - discount + delivery)}</strong></div><button className="button button-primary checkout-button" onClick={() => window.alert("La validation de commande est simulée dans cette démo.")}>Continuer ma commande →</button><small className="demo-note">Démo : aucune commande ni aucun paiement réel ne sera effectué.</small></aside></div></div>;
+  return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon panier</div><h1>Votre panier <span className="subtle">({articleCount} article{articleCount !== 1 ? "s" : ""})</span></h1><div className="cart-layout"><section className="cart-items">{lines.map((line) => <article className="cart-line" key={line.productId}><div className="cart-product-art" style={{ background: line.product.color }}>{line.product.image ? <Image src={line.product.image} alt={line.product.imageAlt} width={100} height={100} sizes="100px" /> : <span aria-hidden="true">{line.product.icon}</span>}</div><div className="cart-line-info"><Link href={`/produit/${line.product.slug}`}><strong>{line.product.name}</strong></Link>{line.product.reference !== "Non indiquée" && <small>Réf. {line.product.reference}</small>}<span className="stock">● {line.product.stock}</span><button className="remove-link" onClick={() => removeFromCart(line.productId)}>Supprimer</button></div><div className="quantity-control"><button aria-label="Diminuer" onClick={() => setQuantity(line.productId, line.quantity - 1)}>−</button><span>{line.quantity}</span><button aria-label="Augmenter" onClick={() => setQuantity(line.productId, line.quantity + 1)}>+</button></div><strong className="line-price">{formatPrice(line.product.price === null ? null : line.product.price * line.quantity)}</strong></article>)}<Link href="/categories" className="text-link">← Continuer mes achats</Link></section><aside className="order-card"><h2>Votre commande</h2><form className="promo-form" onSubmit={applyPromo}><label htmlFor="promo">Vous avez un code promo ?</label><div><input id="promo" value={promo} onChange={(event) => setPromo(event.target.value)} placeholder="Code promo" /><button className="button button-secondary">Appliquer</button></div>{promoMessage && <small>{promoMessage}</small>}</form><div className="order-row"><span>Sous-total</span><strong>{formatPrice(subtotal)}</strong></div>{discount > 0 && <div className="order-row"><span>Remise BIENVENUE10</span><strong>− {formatPrice(discount)}</strong></div>}<div className="order-row"><span>Livraison estimée</span><strong>{delivery === 0 ? "Offerte" : formatPrice(delivery)}</strong></div><div className="order-total"><strong>Total TTC</strong><strong>{formatPrice(subtotal - discount + delivery)}</strong></div><button className="button button-primary checkout-button" onClick={() => window.alert("La validation de commande est simulée dans cette démo.")}>Continuer ma commande →</button><small className="demo-note">Démo : aucune commande ni aucun paiement réel ne sera effectué.</small></aside></div></div>;
 }
 
 export function AuthPage({ professional = false, registration = false }: { professional?: boolean; registration?: boolean }) {

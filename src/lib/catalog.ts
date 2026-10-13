@@ -23,6 +23,7 @@ export type Category = {
   image: string;
   accent: string;
   types: CategoryType[];
+  heroImage?: string;
 };
 
 export type Product = {
@@ -33,7 +34,7 @@ export type Product = {
   category: CategorySlug;
   categoryType: CategoryTypeSlug;
   reference: string;
-  price: number;
+  price: number | null;
   rating: number;
   reviews: number;
   stock: string;
@@ -42,7 +43,14 @@ export type Product = {
   color: string;
   description: string;
   tags: string[];
+  image: string | null;
+  imageAlt: string;
+  imageSourceUrl: string | null;
+  imageStatus: "matched" | "unavailable";
+  listed: boolean;
 };
+
+type ProductRecord = Omit<Product, "image" | "imageAlt" | "imageSourceUrl" | "imageStatus" | "listed"> & { listed?: boolean };
 
 export const categoryTypes: CategoryType[] = [
   { slug: "plaquettes-de-frein", category: "freinage", name: "Plaquettes de frein", description: "Des plaquettes adaptées à chaque essieu et à chaque conduite." },
@@ -60,16 +68,16 @@ export const categories: Category[] = [
   { slug: "batteries", name: "Batteries", eyebrow: "Un démarrage garanti", description: "La batterie qu’il vous faut, sélectionnée selon votre véhicule.", icon: "▣", image: "linear-gradient(145deg,#ecf0e9,#d6e3cf)", accent: "#478455", types: categoryTypes.filter((type) => type.category === "batteries") },
   { slug: "pneus", name: "Pneus", eyebrow: "La route vous attend", description: "Pneus été, hiver et toutes saisons au meilleur prix.", icon: "◉", image: "linear-gradient(145deg,#e7edf0,#c5d5dc)", accent: "#3179a7", types: categoryTypes.filter((type) => type.category === "pneus") },
   { slug: "huile-moteur", name: "Huile moteur", eyebrow: "Prenez soin du moteur", description: "Des huiles adaptées aux exigences de votre moteur.", icon: "▤", image: "linear-gradient(145deg,#fbedd2,#f0d4a3)", accent: "#dc9d29", types: categoryTypes.filter((type) => type.category === "huile-moteur") },
-  { slug: "chaines-neige", name: "Chaînes à neige", eyebrow: "Prêt pour l’hiver", description: "Chaînes et chaussettes neige compatibles avec vos pneus.", icon: "❄", image: "linear-gradient(145deg,#e0eff9,#bad9eb)", accent: "#318bc5", types: categoryTypes.filter((type) => type.category === "chaines-neige") },
+  { slug: "chaines-neige", name: "Chaînes à neige", eyebrow: "Prêt pour l’hiver", description: "Chaînes et chaussettes neige compatibles avec vos pneus.", icon: "❄", image: "linear-gradient(145deg,#e0eff9,#bad9eb)", accent: "#318bc5", heroImage: "/images/categories/chaines-neige-reference.png", types: categoryTypes.filter((type) => type.category === "chaines-neige") },
   { slug: "accessoires", name: "Accessoires", eyebrow: "Chaque détail compte", description: "Tout le confort et les accessoires utiles pour votre voiture.", icon: "✦", image: "linear-gradient(145deg,#f4e9e4,#e5c9bc)", accent: "#d66d4c", types: categoryTypes.filter((type) => type.category === "accessoires") },
   { slug: "pieces-occasion", name: "Pièces d’occasion", eyebrow: "La seconde vie des pièces", description: "Des pièces auto d’occasion vérifiées, plus accessibles.", icon: "↻", image: "linear-gradient(145deg,#e8e9f2,#c9cce1)", accent: "#6067a2", types: categoryTypes.filter((type) => type.category === "pieces-occasion") },
 ];
 
-export const products: Product[] = [
+const baseProducts: ProductRecord[] = [
   { id: "p1", slug: "plaquettes-frein-ate-ceramic", name: "Jeu de 4 plaquettes de frein ATE Ceramic", brand: "ATE", category: "freinage", categoryType: "plaquettes-de-frein", reference: "ATE-13.0470", price: 53.9, rating: 4.8, reviews: 126, stock: "En stock — expédié sous 24 h", icon: "◉", color: "#e5edf3", description: "Freinage silencieux et performant. Jeu de plaquettes pour essieu avant, conçu pour limiter la poussière de frein.", tags: ["Avant", "Faible poussière", "Montage facile"] },
   { id: "p2", slug: "disques-frein-brembo", name: "Disque de frein ventilé BREMBO", brand: "BREMBO", category: "freinage", categoryType: "disques-de-frein", reference: "BRE-09.9772", price: 68.5, rating: 4.7, reviews: 89, stock: "En stock — expédié sous 24 h", icon: "◉", color: "#eee9e6", description: "Disque de frein ventilé à haut rendement, fabriqué selon les standards de qualité du constructeur.", tags: ["Avant", "Vendu à l’unité", "Ventilé"] },
-  { id: "p3", slug: "batterie-varta-blue-dynamic", name: "Batterie VARTA Blue Dynamic 74 Ah", brand: "VARTA", category: "batteries", categoryType: "batteries-auto", reference: "VAR-D24", price: 98.9, rating: 4.9, reviews: 204, stock: "En stock — livraison rapide", icon: "▣", color: "#e8f0e8", description: "Batterie fiable au quotidien, puissance de démarrage élevée et technologie sans entretien.", tags: ["74 Ah", "750 A", "Sans entretien"] },
-  { id: "p4", slug: "batterie-bosch-s4", name: "Batterie BOSCH S4 60 Ah", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "BOS-0092S40050", price: 86.4, rating: 4.6, reviews: 97, stock: "Temporairement indisponible", available: false, icon: "▣", color: "#e9edf3", description: "Démarrage fiable et puissance adaptée à de nombreux véhicules récents.", tags: ["60 Ah", "540 A", "12 V"] },
+  { id: "p3", slug: "batterie-varta-blue-dynamic", name: "Batterie VARTA Blue Dynamic 74 Ah", brand: "VARTA", category: "batteries", categoryType: "batteries-auto", reference: "VAR-D24", price: 98.9, rating: 4.9, reviews: 204, stock: "En stock — livraison rapide", icon: "▣", color: "#e8f0e8", description: "Batterie fiable au quotidien, puissance de démarrage élevée et technologie sans entretien.", tags: ["74 Ah", "750 A", "Sans entretien"], listed: false },
+  { id: "p4", slug: "batterie-bosch-s4", name: "Batterie BOSCH S4 60 Ah", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "BOS-0092S40050", price: 86.4, rating: 4.6, reviews: 97, stock: "Temporairement indisponible", available: false, icon: "▣", color: "#e9edf3", description: "Démarrage fiable et puissance adaptée à de nombreux véhicules récents.", tags: ["60 Ah", "540 A", "12 V"], listed: false },
   { id: "p5", slug: "pneu-michelin-primacy-4", name: "Pneu MICHELIN Primacy 4+ 205/55 R16", brand: "MICHELIN", category: "pneus", categoryType: "pneus-auto", reference: "MIC-2055516", price: 91.2, rating: 4.9, reviews: 316, stock: "En stock — livraison offerte dès 2 pneus", icon: "◉", color: "#e8edf0", description: "Pneu été premium offrant une excellente longévité et une sécurité durable sur sol mouillé.", tags: ["Été", "205/55 R16", "A/A"] },
   { id: "p6", slug: "pneu-goodyear-vector-4seasons", name: "Pneu GOODYEAR Vector 4Seasons Gen-3", brand: "GOODYEAR", category: "pneus", categoryType: "pneus-auto", reference: "GOO-4S205", price: 84.9, rating: 4.7, reviews: 182, stock: "En stock — livraison rapide", icon: "◉", color: "#edf0e8", description: "Pneu toutes saisons pour garder le contrôle tout au long de l’année.", tags: ["4 saisons", "205/55 R16", "M+S"] },
   { id: "p7", slug: "huile-castrol-edge-5w30", name: "Huile moteur CASTROL EDGE 5W-30 LL", brand: "CASTROL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "CAS-15669E", price: 42.9, rating: 4.8, reviews: 143, stock: "En stock — expédié sous 24 h", icon: "▤", color: "#f3eadb", description: "Huile moteur synthétique conçue pour protéger les moteurs performants et réduire les frictions.", tags: ["5W-30", "5 litres", "Synthétique"] },
@@ -80,7 +88,7 @@ export const products: Product[] = [
   { id: "p12", slug: "kit-entretien-frein", name: "Kit d’entretien et nettoyage des freins", brand: "ATE", category: "freinage", categoryType: "plaquettes-de-frein", reference: "ATE-700015", price: 18.7, rating: 4.6, reviews: 45, stock: "En stock — expédié sous 24 h", icon: "▤", color: "#edf0f2", description: "Un kit pratique pour l’entretien courant de votre système de freinage.", tags: ["Entretien", "Kit complet", "Usage atelier"] },
 ];
 
-const extraProducts: Array<Omit<Product, "id">> = [
+const extraProducts: Array<Omit<ProductRecord, "id">> = [
   ...([
     ["plaquettes-de-frein", "freinage", "Plaquettes de frein BOSCH QuietCast", "BOSCH", "BOS-BP1234", 39.9, "Plaquettes avant avec réduction du bruit et de la poussière."],
     ["plaquettes-de-frein", "freinage", "Jeu de plaquettes TRW Cotec", "TRW", "TRW-GDB1550", 44.5, "Revêtement de transfert pour un freinage efficace dès les premiers kilomètres."],
@@ -125,17 +133,174 @@ const extraProducts: Array<Omit<Product, "id">> = [
       reviews: 28 + index * 7,
       stock: "En stock — expédié sous 24 h",
       icon: categoryInfo?.icon ?? "◉",
-      color: products.find((product) => product.category === category)?.color ?? "#e9eef2",
+      color: baseProducts.find((product) => product.category === category)?.color ?? "#e9eef2",
       description,
       tags: ["Sélection Mister Auto", "Garantie fabricant"],
-    } satisfies Omit<Product, "id">;
+      listed: categoryType !== "batteries-auto",
+    } satisfies Omit<ProductRecord, "id">;
   }),
 ];
 
-products.push(...extraProducts.map((product, index) => ({ ...product, id: `p${index + 13}` })));
+const batteryProducts: Array<Omit<ProductRecord, "id">> = [
+  { slug: "batterie-bolk-m040002", name: "Batterie de voiture 70 Ah / 760 A AGM", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040002", price: 132.23, rating: 4.5, reviews: 44, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie AGM 70 Ah avec courant de démarrage de 760 A, adaptée aux véhicules équipés du système Start & Stop.", tags: ["70 Ah", "760 A", "AGM", "Start & Stop", "12 V", "À saisir"] },
+  { slug: "batterie-bolk-m040006", name: "Batterie de voiture 60 Ah / 560 A EFB", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040006", price: 92.51, rating: 4.8, reviews: 12, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie EFB 60 Ah délivrant 560 A, conçue pour les véhicules avec Start & Stop.", tags: ["60 Ah", "560 A", "EFB", "Start & Stop", "12 V"] },
+  { slug: "batterie-bolk-m040026", name: "Batterie de voiture 74 Ah / 680 A", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040026", price: 75.18, rating: 4.8, reviews: 149, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie 74 Ah avec courant de démarrage de 680 A pour un démarrage fiable au quotidien.", tags: ["74 Ah", "680 A", "12 V"] },
+  { slug: "batterie-bolk-m010022", name: "Batterie de voiture haute performance 77 Ah / 760 A", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M010022", price: 86.78, rating: 4.5, reviews: 23, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie haute performance de 77 Ah et 760 A pour les véhicules fortement équipés.", tags: ["77 Ah", "760 A", "Haute performance", "12 V"] },
+  { slug: "batterie-bolk-m040003", name: "Batterie de voiture 80 Ah / 800 A AGM", brand: "BOLK", category: "batteries", categoryType: "batteries-auto", reference: "BOL-M040003", price: 148.19, rating: 4.0, reviews: 5, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie AGM 80 Ah et 800 A destinée aux véhicules équipés du système Start & Stop.", tags: ["80 Ah", "800 A", "AGM", "Start & Stop", "12 V"] },
+  { slug: "batterie-bosch-0092-s5a-110", name: "Batterie de voiture 80 Ah / 800 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S5A 110 / S5 A11", price: 189.14, rating: 4.7, reviews: 12, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH de 80 Ah avec courant de démarrage de 800 A.", tags: ["80 Ah", "800 A", "12 V"] },
+  { slug: "batterie-exide-ek820", name: "Batterie de voiture 82 Ah / 800 A", brand: "EXIDE", category: "batteries", categoryType: "batteries-auto", reference: "EK820", price: 162.23, rating: 5, reviews: 2, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie EXIDE de 82 Ah et 800 A, modèle EK820.", tags: ["82 Ah", "800 A", "12 V"] },
+  { slug: "batterie-bosch-0092-s40-080", name: "Batterie de voiture 74 Ah / 680 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S40 080 / S4 008", price: 110.89, rating: 4.8, reviews: 21, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH S4 de 74 Ah avec courant de démarrage de 680 A.", tags: ["74 Ah", "680 A", "12 V"] },
+  { slug: "batterie-bosch-0092-s50-080", name: "Batterie de voiture 77 Ah / 780 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S50 080 / S5 008", price: 125.78, rating: 4.6, reviews: 16, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH S5 de 77 Ah et 780 A.", tags: ["77 Ah", "780 A", "12 V"] },
+  { slug: "batterie-bosch-0092-s4e-051", name: "Batterie de voiture 60 Ah / 640 A", brand: "BOSCH", category: "batteries", categoryType: "batteries-auto", reference: "0 092 S4E 051 / S4 E05", price: 115.99, rating: 4.4, reviews: 8, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BOSCH S4 de 60 Ah et 640 A.", tags: ["60 Ah", "640 A", "12 V"] },
+  { slug: "batterie-bproauto-04220002", name: "Batterie de voiture 70 Ah / 760 A", brand: "BPROAUTO", category: "batteries", categoryType: "batteries-auto", reference: "PRO-04220002", price: 135.76, rating: 4.6, reviews: 6, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BPROAUTO de 70 Ah avec courant de démarrage de 760 A.", tags: ["70 Ah", "760 A", "12 V"] },
+  { slug: "batterie-yuasa-ybx9115", name: "Batterie de voiture 80 Ah / 800 A", brand: "YUASA", category: "batteries", categoryType: "batteries-auto", reference: "YBX9115", price: 180.62, rating: 0, reviews: 0, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie YUASA de 80 Ah avec courant de démarrage de 800 A, référence YBX9115.", tags: ["80 Ah", "800 A", "12 V"] },
+  { slug: "batterie-bproauto-04220003", name: "Batterie de voiture 80 Ah / 800 A", brand: "BPROAUTO", category: "batteries", categoryType: "batteries-auto", reference: "PRO-04220003", price: 152.15, rating: 4.0, reviews: 5, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BPROAUTO de 80 Ah et 800 A.", tags: ["80 Ah", "800 A", "12 V"] },
+  { slug: "batterie-bproauto-04220026", name: "Batterie de voiture 74 Ah / 680 A", brand: "BPROAUTO", category: "batteries", categoryType: "batteries-auto", reference: "PRO-04220026", price: 77.18, rating: 4.8, reviews: 12, stock: "Livraison rapide — expédié sous 24 h", icon: "▣", color: "#fff", description: "Batterie BPROAUTO de 74 Ah avec courant de démarrage de 680 A.", tags: ["74 Ah", "680 A", "12 V"] },
+];
 
-export const formatPrice = (price: number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(price);
+type ReferenceProductInput = Pick<ProductRecord, "slug" | "name" | "brand" | "category" | "categoryType" | "reference" | "price"> & {
+  imagePath: string;
+  available?: boolean;
+  reviews?: number;
+  rating?: number;
+};
+
+function referenceProduct(input: ReferenceProductInput): ProductRecord & { imagePath: string } {
+  const category = categories.find((item) => item.slug === input.category);
+  return {
+    id: `reference-${input.slug}`,
+    slug: input.slug,
+    name: input.name,
+    brand: input.brand,
+    category: input.category,
+    categoryType: input.categoryType,
+    reference: input.reference,
+    price: input.price,
+    rating: input.rating ?? 0,
+    reviews: input.reviews ?? 0,
+    stock: input.available === false ? "Temporairement indisponible" : "Livraison rapide — expédié sous 24 h",
+    available: input.available,
+    icon: category?.icon ?? "◉",
+    color: "#fff",
+    description: `${input.name}. Sélection issue de la capture de référence. Vérifiez la compatibilité avec votre véhicule avant commande.`,
+    tags: [],
+    listed: true,
+    imagePath: input.imagePath,
+  };
+}
+
+const referenceProducts = [
+  referenceProduct({ slug: "plaquette-delphi-lp3302", name: "Jeu de plaquettes de frein avant", brand: "DELPHI", category: "freinage", categoryType: "plaquettes-de-frein", reference: "LP3302", price: 52.9, reviews: 0, imagePath: "/images/products/freinage/delphi-lp3302.png" }),
+  referenceProduct({ slug: "plaquette-trw-avant", name: "Jeu de plaquettes de frein avant", brand: "TRW", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 40.9, reviews: 42, imagePath: "/images/products/freinage/trw-gdb-unknown.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986494660", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 494 660 / BP1505", price: 47.5, reviews: 42, imagePath: "/images/products/freinage/bosch-0986494660.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986424829", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 424 829", price: 59.9, reviews: 23, imagePath: "/images/products/freinage/bosch-0986424829.png" }),
+  referenceProduct({ slug: "plaquette-brembo-p85152", name: "Jeu de plaquettes de frein avant", brand: "BREMBO", category: "freinage", categoryType: "plaquettes-de-frein", reference: "P 85 152", price: 223.9, imagePath: "/images/products/freinage/brembo-p85152.png" }),
+  referenceProduct({ slug: "plaquette-bosch-performance", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 78.9, reviews: 8, imagePath: "/images/products/freinage/bosch-brake-set.png" }),
+  referenceProduct({ slug: "plaquette-ferodo-premier", name: "Jeu de plaquettes de frein avant", brand: "FERODO", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 56.9, imagePath: "/images/products/freinage/ferodo-brake-set.png" }),
+  referenceProduct({ slug: "plaquette-trw-coated", name: "Jeu de plaquettes de frein avant", brand: "TRW", category: "freinage", categoryType: "plaquettes-de-frein", reference: "Non indiquée", price: 75.9, imagePath: "/images/products/freinage/trw-brake-set-2.png" }),
+  referenceProduct({ slug: "plaquette-jurid-573773j", name: "Jeu de plaquettes de frein avant", brand: "JURID", category: "freinage", categoryType: "plaquettes-de-frein", reference: "573773J", price: 86.9, imagePath: "/images/products/freinage/jurid-573773j.png" }),
+  referenceProduct({ slug: "plaquette-abs-37671", name: "Jeu de plaquettes de frein avant", brand: "A.B.S.", category: "freinage", categoryType: "plaquettes-de-frein", reference: "37671", price: 50.9, imagePath: "/images/products/freinage/abs-37671.png" }),
+  referenceProduct({ slug: "plaquette-zimmermann-256611702", name: "Jeu de plaquettes de frein avant", brand: "ZIMMERMANN", category: "freinage", categoryType: "plaquettes-de-frein", reference: "25661.170.2", price: 103.9, imagePath: "/images/products/freinage/zimmermann-256611702.png" }),
+  referenceProduct({ slug: "plaquette-nk-224719", name: "Jeu de plaquettes de frein avant", brand: "NK", category: "freinage", categoryType: "plaquettes-de-frein", reference: "224719", price: 55.9, imagePath: "/images/products/freinage/nk-224719.png" }),
+  referenceProduct({ slug: "plaquette-maxgear-19-2143", name: "Jeu de plaquettes de frein avant", brand: "MAXGEAR", category: "freinage", categoryType: "plaquettes-de-frein", reference: "19-2143", price: 29.5, imagePath: "/images/products/freinage/maxgear-19-2143.png" }),
+  referenceProduct({ slug: "plaquette-abs-35125", name: "Jeu de plaquettes de frein avant", brand: "A.B.S.", category: "freinage", categoryType: "plaquettes-de-frein", reference: "35125", price: 46.9, imagePath: "/images/products/freinage/abs-35125.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986460162", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 460 162", price: 98.9, imagePath: "/images/products/freinage/bosch-0986460162.png" }),
+  referenceProduct({ slug: "plaquette-textar-2209101", name: "Jeu de plaquettes de frein avant", brand: "TEXTAR", category: "freinage", categoryType: "plaquettes-de-frein", reference: "2209101", price: 267.9, imagePath: "/images/products/freinage/textar-2209101.png" }),
+  referenceProduct({ slug: "plaquette-quinton-hazell-bp1906", name: "Jeu de plaquettes de frein avant", brand: "QUINTON HAZELL", category: "freinage", categoryType: "plaquettes-de-frein", reference: "BP1906", price: 117.9, imagePath: "/images/products/freinage/quinton-hazell-bp1906.png" }),
+  referenceProduct({ slug: "plaquette-bosch-0986460072", name: "Jeu de plaquettes de frein avant", brand: "BOSCH", category: "freinage", categoryType: "plaquettes-de-frein", reference: "0 986 460 072", price: 55.9, imagePath: "/images/products/freinage/bosch-brake-set-3.png" }),
+  referenceProduct({ slug: "plaquette-pagid-t2581n", name: "Jeu de plaquettes de frein avant", brand: "PAGID", category: "freinage", categoryType: "plaquettes-de-frein", reference: "T2581N", price: 199.9, imagePath: "/images/products/freinage/pagid-t2581n.png" }),
+  referenceProduct({ slug: "plaquette-brembo-indisponible", name: "Jeu de plaquettes de frein avant", brand: "BREMBO", category: "freinage", categoryType: "plaquettes-de-frein", reference: "P 85 152", price: null, available: false, imagePath: "/images/products/freinage/brembo-unavailable.png" }),
+  referenceProduct({ slug: "pneu-goodyear-efficientgrip-528503", name: "Pneu GOODYEAR EfficientGrip Performance", brand: "GOODYEAR", category: "pneus", categoryType: "pneus-auto", reference: "528503", price: 78.9, reviews: 2, rating: 4.8, imagePath: "/images/products/pneus/goodyear-528503.png" }),
+  referenceProduct({ slug: "pneu-michelin-energy-saver-771116", name: "Pneu MICHELIN Energy Saver+ 175/65 R14 82T", brand: "MICHELIN", category: "pneus", categoryType: "pneus-auto", reference: "771116", price: 77.9, reviews: 3, rating: 4.8, imagePath: "/images/products/pneus/michelin-771116.png" }),
+  referenceProduct({ slug: "pneu-goodyear-efficientgrip-528504", name: "Pneu GOODYEAR EfficientGrip Performance", brand: "GOODYEAR", category: "pneus", categoryType: "pneus-auto", reference: "528504", price: 66.9, reviews: 2, rating: 4.8, imagePath: "/images/products/pneus/goodyear-528504.png" }),
+  referenceProduct({ slug: "pneu-dunlop-bluresponse-528520", name: "Pneu DUNLOP Sport BluResponse 195/65 R15 91H", brand: "DUNLOP", category: "pneus", categoryType: "pneus-auto", reference: "528520", price: 58.9, reviews: 9, rating: 4.8, imagePath: "/images/products/pneus/dunlop-528520.png" }),
+  referenceProduct({ slug: "huile-mannol-legend-mn7730-5", name: "Huile moteur MANNOL Legend 504/507 0W-30 5 L", brand: "MANNOL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "MN7730-5", price: 48.9, reviews: 8, rating: 4.8, imagePath: "/images/products/huile-moteur/mannol-mn7730-5.png" }),
+  referenceProduct({ slug: "huile-liqui-moly-top-tec-21605", name: "Huile moteur LIQUI MOLY Top Tec 4210 0W-30 5 L", brand: "LIQUI MOLY", category: "huile-moteur", categoryType: "huiles-moteur", reference: "21605", price: 79.9, reviews: 1, rating: 4.8, imagePath: "/images/products/huile-moteur/liqui-moly-21605.png" }),
+  referenceProduct({ slug: "huile-shell-helix-ultra-pro-avl", name: "Huile moteur SHELL Helix Ultra Pro AV-L 0W-30 5 L", brand: "SHELL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "550046304", price: 82.9, reviews: 10, rating: 4.6, imagePath: "/images/products/huile-moteur/shell-550046304.png" }),
+  referenceProduct({ slug: "huile-petronas-syntium-7000", name: "Huile moteur PETRONAS Syntium 7000 LL 0W-20 200 L", brand: "PETRONAS", category: "huile-moteur", categoryType: "huiles-moteur", reference: "70720251EU", price: 1412.69, imagePath: "/images/products/huile-moteur/petronas-70720251eu.png" }),
+  referenceProduct({ slug: "huile-total-quartz-ineo-long-life-5l", name: "Huile moteur TOTAL Quartz Ineo Long Life 0W-30 5 L", brand: "TOTALENERGIES", category: "huile-moteur", categoryType: "huiles-moteur", reference: "214225", price: null, available: false, reviews: 276, rating: 4.5, imagePath: "/images/products/huile-moteur/total-214225.png" }),
+  referenceProduct({ slug: "huile-total-quartz-ineo-long-life-1l", name: "Huile moteur TOTAL Quartz Ineo Long Life 0W-30 1 L", brand: "TOTALENERGIES", category: "huile-moteur", categoryType: "huiles-moteur", reference: "216246", price: null, available: false, reviews: 87, rating: 4.5, imagePath: "/images/products/huile-moteur/total-216246.png" }),
+  referenceProduct({ slug: "huile-mannol-0w30-mn7730-20", name: "Huile moteur MANNOL 0W-30 SN/C3 20 L", brand: "MANNOL", category: "huile-moteur", categoryType: "huiles-moteur", reference: "MN7730-20", price: null, available: false, imagePath: "/images/products/huile-moteur/mannol-mn7730-20.png" }),
+  referenceProduct({ slug: "accessoire-velo-electrique-new-york", name: "Vélo électrique noir New York", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: null, available: false, imagePath: "/images/products/accessoires/velo-electrique-new-york.png" }),
+  referenceProduct({ slug: "accessoire-nettoyant-injecteurs-warm-up", name: "Nettoyant injecteurs diesel BOLK — 1 L", brand: "BOLK", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 42.9, imagePath: "/images/products/accessoires/nettoyant-injecteurs-warm-up.png" }),
+  referenceProduct({ slug: "accessoire-kit-renovation-phares-philips", name: "Kit de rénovation pour phares", brand: "PHILIPS", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: null, available: false, imagePath: "/images/products/accessoires/kit-renovation-phare-philips.png" }),
+  referenceProduct({ slug: "accessoire-pare-soleil-wrc", name: "Pare-soleil aluminium WRC 130 × 70 cm", brand: "WRC", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 9.9, imagePath: "/images/products/accessoires/pare-soleil-wrc.png" }),
+  referenceProduct({ slug: "accessoire-chargeur-vehicule-electrique-type-2", name: "Chargeur portable véhicule électrique — Type 2", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: null, available: false, imagePath: "/images/products/accessoires/chargeur-vehicule-electrique-type-2.png" }),
+  referenceProduct({ slug: "accessoire-diagnostic-obd2", name: "Appareil de diagnostic OBD2 (EOBD)", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 89.9, imagePath: "/images/products/accessoires/diagnostic-obd2.png" }),
+  referenceProduct({ slug: "accessoire-cle-vidange-8-10mm", name: "Clé de vidange carrée 8 mm / 10 mm", brand: "MISTER AUTO", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 3.9, imagePath: "/images/products/accessoires/cle-vidange-8-10mm.png" }),
+  referenceProduct({ slug: "accessoire-nettoyant-plastique-michelin", name: "Nettoyant plastique MICHELIN 500 ml — fraîcheur d’été", brand: "MICHELIN", category: "accessoires", categoryType: "accessoires-auto", reference: "Non indiquée", price: 6.9, imagePath: "/images/products/accessoires/nettoyant-plastique-michelin.png" }),
+];
+
+const productRecords = [
+  ...baseProducts,
+  ...extraProducts.map((product, index) => ({ ...product, id: `p${index + 13}` })),
+  ...batteryProducts.map((product) => ({ ...product, id: `battery-${product.reference.toLocaleLowerCase("fr").replace(/[^a-z0-9]+/g, "-")}` })),
+];
+
+const batteryImages: Record<string, string> = {
+  "BOL-M040002": "/images/products/batteries/bolk-m040002.png",
+  "BOL-M040006": "/images/products/batteries/bolk-m040006.png",
+  "BOL-M040026": "/images/products/batteries/bolk-m040026.png",
+  "BOL-M010022": "/images/products/batteries/bolk-m010022.png",
+  "BOL-M040003": "/images/products/batteries/bolk-m040003.png",
+  "0 092 S5A 110 / S5 A11": "/images/products/batteries/bosch-0092-s5a-110.png",
+  EK820: "/images/products/batteries/exide-ek820.png",
+  "0 092 S40 080 / S4 008": "/images/products/batteries/bosch-0092-s40-080.png",
+  "0 092 S50 080 / S5 008": "/images/products/batteries/bosch-0092-s50-080.png",
+  "0 092 S4E 051 / S4 E05": "/images/products/batteries/bosch-0092-s4e-051.png",
+  "PRO-04220002": "/images/products/batteries/bproauto-04220002.png",
+  YBX9115: "/images/products/batteries/yuasa-ybx9115.png",
+  "PRO-04220003": "/images/products/batteries/bproauto-04220003.png",
+  "PRO-04220026": "/images/products/batteries/bproauto-04220026.png",
+};
+
+const batteryScreenshotSource = "https://github.com/oardietadb/mister-auto-final-demo/blob/main/batteries.png";
+const referenceScreenshotSources: Partial<Record<CategorySlug, string>> = {
+  freinage: "https://github.com/oardietadb/mister-auto-final-demo/blob/main/frinage.png",
+  pneus: "https://github.com/oardietadb/mister-auto-final-demo/blob/main/pneus.png",
+  "huile-moteur": "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-huile-moteur-3224-g-2026-10-10-17_34_59.png",
+  accessoires: "https://github.com/oardietadb/mister-auto-final-demo/blob/main/screencapture-mister-auto-accessoire-auto-2026-10-10-17_35_36.png",
+};
+const referenceProductImages = new Map(referenceProducts.map((product) => [product.slug, product.imagePath]));
+const replacedProductCategories = new Set<CategorySlug>(["pneus", "huile-moteur", "accessoires"]);
+const catalogRecords = [
+  ...productRecords.map((product) => ({
+    ...product,
+    listed: product.listed !== false
+      && product.category !== "freinage"
+      && !replacedProductCategories.has(product.category)
+  })),
+  ...referenceProducts,
+];
+
+export const products: Product[] = catalogRecords.map((product) => {
+  const image = batteryImages[product.reference] ?? referenceProductImages.get(product.slug) ?? null;
+  const imageSourceUrl = batteryImages[product.reference]
+    ? batteryScreenshotSource
+    : image ? referenceScreenshotSources[product.category] ?? null : null;
+  return {
+    ...product,
+    image,
+    imageAlt: product.name,
+    imageSourceUrl,
+    imageStatus: image ? "matched" : "unavailable",
+    listed: product.listed !== false,
+  };
+});
+
+export const listedProducts = products.filter((product) => product.listed);
+
+export const productImageAudit = listedProducts.map(({ slug, reference, imageSourceUrl, image, imageStatus }) => ({
+  slug,
+  reference,
+  sourceUrl: imageSourceUrl,
+  imagePath: image,
+  status: imageStatus,
+  note: imageStatus === "matched" ? null : "Aucune image retenue : la correspondance officielle n’a pas pu être vérifiée.",
+}));
+
+export const formatPrice = (price: number | null) =>
+  price === null ? "Prix indisponible" : new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(price);
 export const findProduct = (slug: string) => products.find((product) => product.slug === slug);
 export const findCategory = (slug: string) => categories.find((category) => category.slug === slug);
 export const findCategoryType = (slug: string) => categoryTypes.find((type) => type.slug === slug);
