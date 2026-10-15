@@ -224,10 +224,14 @@ button { color: inherit; }
 .vehicle-card-top strong { font-size: 14px; }
 .vehicle-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 15px; }
 .vehicle-form label, .auth-form > label, .form-two label { display: grid; gap: 6px; color: #414b54; font-size: 11px; font-weight: 700; }
-.vehicle-form label:nth-child(3), .vehicle-form .button, .vehicle-form .success-message, .vehicle-form .privacy-note { grid-column: 1 / -1; }
+.vehicle-form label:nth-child(3), .vehicle-form .button, .vehicle-form .success-message, .vehicle-form .form-error, .vehicle-form .privacy-note, .vehicle-inspection, .vehicle-cancel-edit { grid-column: 1 / -1; }
 .vehicle-form select, .auth-form input, .auth-form select { width: 100%; min-height: 40px; padding: 0 10px; border: 1px solid #dfe3e7; border-radius: 4px; outline-color: #5290d5; background: white; }
 .vehicle-form select:disabled { color: #959da5; background: #f5f6f7; }
 .vehicle-form .button { margin-top: 3px; }
+.vehicle-inspection { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.vehicle-inspection legend { grid-column: 1 / -1; margin-bottom: 6px; color: #414b54; font-size: 11px; font-weight: 700; }
+.vehicle-inspection label { min-width: 0; }
+.vehicle-form .vehicle-cancel-edit { justify-self: center; }
 .success-message { margin: 0; color: #387344; font-size: 12px; font-weight: 700; }
 .privacy-note { color: #9299a0; font-size: 10px; text-align: center; }
 .garage-aside { display: grid; justify-items: center; padding: 33px 28px; border-radius: 10px; background: #e9f0f6; text-align: center; }
@@ -251,6 +255,9 @@ button { color: inherit; }
 .detail-add { width: 100%; margin-top: 12px; }
 .delivery-note { color: var(--muted); text-align: center; font-size: 10px; }
 .cart-layout { display: grid; grid-template-columns: minmax(0,1fr) 340px; align-items: start; gap: 22px; margin-top: 20px; }
+.cart-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.cart-heading-row h1 { margin: 7px 0 8px; }
+.clear-cart-button { flex: 0 0 auto; }
 .cart-items { display: grid; gap: 13px; }
 .cart-line { display: grid; grid-template-columns: 100px minmax(0,1fr) auto auto; align-items: center; gap: 15px; padding: 15px; border: 1px solid var(--line); border-radius: 7px; background: white; }
 .cart-product-art { width: 100px; height: 100px; display: grid; place-items: center; border-radius: 5px; color: #35434d; }
@@ -340,9 +347,10 @@ button { color: inherit; }
 .footer-trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 30px; padding-block: 14px; border-top: 1px solid #ffffff24; color: #c4cbd0; font-size: var(--font-tiny); }
 .garage-saved { display: grid; gap: 9px; margin: 22px 0; }
 .garage-saved h2 { margin: 0; font-size: var(--font-large); }
-.garage-saved-item { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
-.garage-saved-item > span:nth-child(2) { display: grid; flex: 1; }
+.garage-saved-item { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.garage-saved-item > span:nth-child(2) { display: grid; min-width: 0; }
 .garage-saved-item small { color: var(--muted); font-size: var(--font-tiny); }
+.garage-saved-actions { display: flex; align-items: center; justify-content: end; flex-wrap: wrap; gap: 10px; }
 .primary-label { color: #42754c; font-size: var(--font-tiny); }
 .optional-label { color: var(--muted); font-weight: 400; }
 .vehicle-form input { width: 100%; min-height: 40px; padding: 0 10px; border: 1px solid #dfe3e7; border-radius: 4px; outline-color: #5290d5; background: white; }
@@ -526,8 +534,11 @@ button { color: inherit; }
   .category-type-card small { font-size: 12px; }
   .type-count { font-size: 11px; }
   .newsletter-input .button { padding-inline: 11px; font-size: 12px; }
-  .garage-saved-item { flex-wrap: wrap; }
-  .garage-saved-item > span:nth-child(2) { min-width: calc(100% - 65px); }
+  .cart-heading-row { align-items: flex-start; }
+  .clear-cart-button { min-height: 37px; padding-inline: 9px; }
+  .garage-saved-item { grid-template-columns: auto minmax(0,1fr); }
+  .garage-saved-actions { grid-column: 2; justify-content: start; }
+  .vehicle-inspection legend { font-size: 11px; }
   .demo-events-heading { align-items: stretch; flex-direction: column; }
   .demo-events-heading > div:last-child { display: flex; gap: 7px; }
   .demo-event-card header span { width: 100%; margin-left: 0; }

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { categories } from "@/lib/catalog";
 import { trackEvent } from "@/lib/analytics";
+import { track } from "@/lib/track";
 import { useStore } from "@/lib/store";
 import { NewsletterForm } from "@/components/storefront";
 
@@ -15,12 +16,16 @@ export function SiteHeader() {
   const [query, setQuery] = useState("");
   useEffect(() => {
     trackEvent({ type: "pageView", path: pathname, title: document.title });
+    track("ma_pageView");
   }, [pathname]);
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const value = query.trim();
     if (!value) return;
     trackEvent({ type: "search", query: value });
+    window.misterAuto ??= {};
+    window.misterAuto.searchKeyword = value;
+    track("ma_search");
     router.push(`/recherche?q=${encodeURIComponent(value)}`);
   }
   return (

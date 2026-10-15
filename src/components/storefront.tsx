@@ -5,9 +5,10 @@ import Image from "next/image";
 import { useEffect, useMemo, useState, useId, type FormEvent } from "react";
 import { categories, findCategory, findCategoryType, findProduct, formatPrice, listedProducts, products, type Category, type Product } from "@/lib/catalog";
 import { trackEvent } from "@/lib/analytics";
-import { demoAuthAdapter } from "@/lib/auth";
-import { validateVehicleSelection, vehicleEngines, vehicleMakes } from "@/lib/vehicles";
-import { useStore } from "@/lib/store";
+import { track } from "@/lib/track";
+import { storeLocalUser, supabaseAuthAdapter } from "@/lib/auth";
+import { validateVehicleSelection, vehicleCatalog, vehicleMileageOptions } from "@/lib/vehicles";
+import { useStore, type Vehicle } from "@/lib/store";
 
 export function ProductCard({ product, layout = "standard" }: { product: Product; layout?: "standard" | "battery" }) {
   const { addToCart, vehicle } = useStore();
@@ -84,32 +85,75 @@ export function CategoryTypes({ category }: { category: Category }) {
   ))}</div>;
 }
 
-function VehicleForm() {
-  const { vehicle, saveVehicle } = useStore();
-  const [make, setMake] = useState(vehicle?.make ?? "");
-  const [model, setModel] = useState(vehicle?.model ?? "");
-  const [engine, setEngine] = useState(vehicle?.engine ?? "");
+function VehicleForm({ editingVehicle, onSaved }: { editingVehicle: Vehicle | null; onSaved: () => void }) {
+  const { saveVehicle } = useStore();
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [engine, setEngine] = useState("");
   const [registration, setRegistration] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [mileage, setMileage] = useState("");
+  const [inspectionMonth, setInspectionMonth] = useState("");
+  const [inspectionYear, setInspectionYear] = useState("");
+  const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const selectedMake = Object.keys(vehicleMakes).find((candidate): candidate is keyof typeof vehicleMakes => candidate === make);
-  const selectedEngine = vehicleEngines.find((candidate) => candidate === engine);
-  const models = selectedMake ? vehicleMakes[selectedMake] : [];
+  useEffect(() => {
+    if (notice && !editingVehicle) track("ma_vehicleAdded");
+  }, [editingVehicle, notice]);
+  const selectedMake = vehicleCatalog.find((candidate) => candidate.make === make);
+  const models = selectedMake?.models ?? [];
+  const selectedModel = models.find((candidate) => candidate.name === model);
+  const engines = selectedModel?.engines ?? [];
+  const years = Array.from({ length: 30 }, (_, index) => String(new Date().getFullYear() - index));
+
+  useEffect(() => {
+    setMake(editingVehicle?.make ?? "");
+    setModel(editingVehicle?.model ?? "");
+    setEngine(editingVehicle?.engine ?? "");
+    setRegistration(editingVehicle?.registration ?? "");
+    setMileage(editingVehicle?.mileage ?? "");
+    const [year = "", month = ""] = editingVehicle?.lastInspection?.split("-") ?? [];
+    setInspectionMonth(month);
+    setInspectionYear(year);
+    setNotice("");
+    setError("");
+  }, [editingVehicle]);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedMake || !model || !selectedEngine) return;
+    if (!selectedMake || !selectedModel || !selectedModel.engines.some((item) => item === engine)) return;
+    if (Boolean(inspectionMonth) !== Boolean(inspectionYear)) {
+      setError("Sélectionnez le mois et l’année du dernier contrôle technique.");
+      return;
+    }
+    const selectedMileage = vehicleMileageOptions.find((item) => item.value === mileage)?.value;
+    if (mileage && !selectedMileage) {
+      setError("Sélectionnez une tranche de kilométrage proposée.");
+      return;
+    }
     setSaving(true);
     setError("");
+    setNotice("");
     try {
       const validated = await validateVehicleSelection({
-        make: selectedMake,
+        make: selectedMake.make,
         model,
-        engine: selectedEngine,
+        engine,
         ...(registration.trim() ? { registration: registration.trim().toUpperCase() } : {}),
+        ...(selectedMileage ? { mileage: selectedMileage } : {}),
+        ...(inspectionMonth && inspectionYear ? { lastInspection: `${inspectionYear}-${inspectionMonth}` } : {}),
       });
-      saveVehicle(validated);
-      setSaved(true);
+      saveVehicle({ ...validated, ...(editingVehicle ? { id: editingVehicle.id } : {}) });
+      setNotice(editingVehicle ? "Les informations du véhicule ont été mises à jour." : "Le véhicule a été ajouté à votre garage.");
+      if (!editingVehicle) {
+        setMake("");
+        setModel("");
+        setEngine("");
+        setRegistration("");
+        setMileage("");
+        setInspectionMonth("");
+        setInspectionYear("");
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Une erreur est survenue. Réessayez.");
     } finally {
@@ -118,23 +162,31 @@ function VehicleForm() {
   }
   return (
     <form className="vehicle-form" onSubmit={submit}>
-      <label>Marque<select required value={make} onChange={(event) => { setMake(event.target.value); setModel(""); setSaved(false); }}><option value="">Choisir une marque</option>{Object.keys(vehicleMakes).map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label>Modèle<select required value={model} disabled={!make} onChange={(event) => { setModel(event.target.value); setSaved(false); }}><option value="">Choisir un modèle</option>{models.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label>Motorisation<select required value={engine} disabled={!model} onChange={(event) => { setEngine(event.target.value); setSaved(false); }}><option value="">Choisir une motorisation</option>{vehicleEngines.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label>Marque<select required value={make} onChange={(event) => { setMake(event.target.value); setModel(""); setEngine(""); setNotice(""); }}><option value="">Choisir une marque</option>{vehicleCatalog.map((item) => <option key={item.make}>{item.make}</option>)}</select></label>
+      <label>Modèle<select required value={model} disabled={!make} onChange={(event) => { setModel(event.target.value); setEngine(""); setNotice(""); }}><option value="">Choisir un modèle</option>{models.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+      <label>Motorisation<select required value={engine} disabled={!model} onChange={(event) => { setEngine(event.target.value); setNotice(""); }}><option value="">Choisir une motorisation</option>{engines.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label>Kilométrage<select value={mileage} onChange={(event) => setMileage(event.target.value)}><option value="">Sélectionner une tranche (facultatif)</option>{vehicleMileageOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+      <fieldset className="vehicle-inspection"><legend>Dernier contrôle technique <span className="optional-label">(facultatif)</span></legend><label><span className="visually-hidden">Mois du contrôle technique</span><select aria-label="Mois du contrôle technique" value={inspectionMonth} onChange={(event) => setInspectionMonth(event.target.value)}><option value="">Mois</option>{Array.from({ length: 12 }, (_, index) => { const value = String(index + 1).padStart(2, "0"); return <option key={value} value={value}>{value}</option>; })}</select></label><label><span className="visually-hidden">Année du contrôle technique</span><select aria-label="Année du contrôle technique" value={inspectionYear} onChange={(event) => setInspectionYear(event.target.value)}><option value="">Année</option>{years.map((year) => <option key={year}>{year}</option>)}</select></label></fieldset>
       <label className="vehicle-registration">Immatriculation <span className="optional-label">(facultatif)</span><input value={registration} onChange={(event) => setRegistration(event.target.value.toUpperCase())} placeholder="AA-123-AA" maxLength={9} autoComplete="off" /></label>
-      <button className="button button-primary" type="submit" disabled={saving}>{saving ? "Vérification…" : "Valider mon véhicule"} <span>→</span></button>
-      {saved && <p className="success-message">✓ Votre véhicule a été ajouté à votre garage.</p>}
+      <button className="button button-primary" type="submit" disabled={saving}>{saving ? "Vérification…" : editingVehicle ? "Enregistrer les modifications" : "Ajouter ce véhicule"} <span>→</span></button>
+      {editingVehicle && <button className="text-link vehicle-cancel-edit" type="button" onClick={onSaved}>Annuler la modification</button>}
+      {notice && <p className="success-message" role="status">✓ {notice}</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
-      <small className="privacy-note">Sélection de démonstration enregistrée sur cet appareil. Aucune recherche d’immatriculation ni compatibilité réelle n’est effectuée.</small>
+      <small className="privacy-note">Ces informations servent à personnaliser votre garage sur cet appareil. Aucune recherche d’immatriculation ni compatibilité réelle n’est effectuée.</small>
     </form>
   );
 }
 
 export function GaragePage() {
   const { vehicle, vehicles, setPrimaryVehicle, removeVehicle } = useStore();
-  return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon garage</div><div className="garage-layout"><section><span className="eyebrow">LE BON PRODUIT, POUR LA BONNE VOITURE</span><h1>Votre garage automobile</h1><p>Ajoutez vos véhicules pour trouver facilement les pièces compatibles et profiter d’une sélection personnalisée.</p><div className="garage-points"><span>✓ Références adaptées</span><span>✓ Recherche simplifiée</span><span>✓ Votre garage sauvegardé</span></div>
-      {vehicles.length > 0 && <section className="garage-saved"><h2>Mes véhicules ({vehicles.length})</h2>{vehicles.map((savedVehicle) => <article className="garage-saved-item" key={savedVehicle.id}><span className="vehicle-icon">🚘</span><span><strong>{savedVehicle.make} {savedVehicle.model}</strong><small>{savedVehicle.engine}{savedVehicle.registration ? ` · ${savedVehicle.registration}` : ""}</small></span>{vehicle?.id === savedVehicle.id ? <b className="primary-label">Véhicule principal</b> : <button className="text-link" onClick={() => setPrimaryVehicle(savedVehicle.id)}>Définir principal</button>}<button className="remove-link" onClick={() => removeVehicle(savedVehicle.id)} aria-label={`Supprimer ${savedVehicle.make} ${savedVehicle.model}`}>Supprimer</button></article>)}</section>}
-      <div className="vehicle-card"><div className="vehicle-card-top"><span className="vehicle-icon large">🚘</span><div><small>AJOUTER UN VÉHICULE</small><strong>Choisissez votre voiture</strong><small>La compatibilité sera à confirmer en conditions réelles.</small></div></div><VehicleForm /></div></section><aside className="garage-aside"><div className="garage-art">🚘</div><h2>Des pièces adaptées à votre véhicule.</h2><p>Enregistrez plusieurs véhicules et choisissez celui à utiliser pour votre recherche.</p></aside></div><section className="section"><SectionHeading kicker="À DÉCOUVRIR" title="Les catégories préférées des automobilistes" /><CategoryTiles /></section></div>;
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon garage</div><div className="garage-layout"><section><span className="eyebrow">LE BON PRODUIT, POUR LA BONNE VOITURE</span><h1>Votre garage automobile</h1><p>Renseignez les caractéristiques de votre voiture pour retrouver votre sélection et vos informations d’entretien.</p><div className="garage-points"><span>✓ Marque, modèle et motorisation</span><span>✓ Kilométrage et contrôle technique</span><span>✓ Plusieurs véhicules sauvegardés</span></div>
+      {vehicles.length > 0 && <section className="garage-saved"><h2>Mes véhicules ({vehicles.length})</h2>{vehicles.map((savedVehicle) => {
+        const mileageLabel = vehicleMileageOptions.find((item) => item.value === savedVehicle.mileage)?.label;
+        const inspectionLabel = savedVehicle.lastInspection ? `${savedVehicle.lastInspection.slice(5, 7)}/${savedVehicle.lastInspection.slice(0, 4)}` : null;
+        return <article className="garage-saved-item" key={savedVehicle.id}><span className="vehicle-icon">🚘</span><span><strong>{savedVehicle.make} {savedVehicle.model}</strong><small>{savedVehicle.engine}{savedVehicle.registration ? ` · ${savedVehicle.registration}` : ""}{mileageLabel ? ` · ${mileageLabel}` : ""}{inspectionLabel ? ` · Contrôle : ${inspectionLabel}` : ""}</small></span><div className="garage-saved-actions">{vehicle?.id === savedVehicle.id ? <b className="primary-label">Véhicule principal</b> : <button className="text-link" onClick={() => setPrimaryVehicle(savedVehicle.id)}>Définir principal</button>}<button className="text-link" onClick={() => setEditingVehicle(savedVehicle)}>Modifier</button><button className="remove-link" onClick={() => { removeVehicle(savedVehicle.id); if (editingVehicle?.id === savedVehicle.id) setEditingVehicle(null); }} aria-label={`Supprimer ${savedVehicle.make} ${savedVehicle.model}`}>Supprimer</button></div></article>;
+      })}</section>}
+      <div className="vehicle-card"><div className="vehicle-card-top"><span className="vehicle-icon large">🚘</span><div><small>{editingVehicle ? "MODIFIER UN VÉHICULE" : "AJOUTER UN VÉHICULE"}</small><strong>{editingVehicle ? `${editingVehicle.make} ${editingVehicle.model}` : "Mon véhicule principal"}</strong><small>Les données de compatibilité restent à confirmer en conditions réelles.</small></div></div><VehicleForm editingVehicle={editingVehicle} onSaved={() => setEditingVehicle(null)} /></div></section><aside className="garage-aside"><div className="garage-art">🚘</div><h2>Des pièces adaptées à votre véhicule.</h2><p>Enregistrez plusieurs véhicules, leur kilométrage et la date du dernier contrôle technique.</p></aside></div><section className="section"><SectionHeading kicker="À DÉCOUVRIR" title="Les catégories préférées des automobilistes" /><CategoryTiles /></section></div>;
 }
 
 export function SectionHeading({ kicker, title, action }: { kicker?: string; title: string; action?: { label: string; href: string } }) {
@@ -168,6 +220,12 @@ export function NewsletterForm() {
   const consentId = useId();
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingNewsletterTrack, setPendingNewsletterTrack] = useState(false);
+  useEffect(() => {
+    if (!pendingNewsletterTrack) return;
+    track("ma_newsletter");
+    setPendingNewsletterTrack(false);
+  }, [pendingNewsletterTrack]);
   async function subscribe(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSending(true);
@@ -180,9 +238,13 @@ export function NewsletterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.get("email"), consent: form.get("consent") === "on" }),
       });
-      const result = await response.json() as { message?: string; error?: string };
+      const result = await response.json() as { message?: string; error?: string; alreadySubscribed?: boolean };
       if (!response.ok) throw new Error(result.error ?? "Votre inscription n’a pas pu être enregistrée.");
       setMessage(result.message ?? "Merci pour votre inscription.");
+      if (!result.alreadySubscribed) {
+        trackEvent({ type: "newsletterSubscribe" });
+        setPendingNewsletterTrack(true);
+      }
       formElement.reset();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Une erreur est survenue. Réessayez.");
@@ -293,17 +355,44 @@ export function ProductDetailPage({ slug }: { slug: string }) {
   const { addToCart } = useStore();
   const product = findProduct(slug);
   const [added, setAdded] = useState(false);
+  const [siteOrigin, setSiteOrigin] = useState(() =>
+    process.env.NEXT_PUBLIC_SITE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SITE_URL).origin
+      : "https://www.mister-auto.com"
+  );
+  useEffect(() => {
+    setSiteOrigin(window.location.origin);
+  }, []);
   useEffect(() => {
     if (product && product.price !== null) {
       trackEvent({ type: "productView", productId: product.id, name: product.name, price: product.price });
     }
   }, [product, slug]);
+  useEffect(() => {
+    const productElement = document.getElementById("ma-product");
+    if (!productElement || !product) return;
+    productElement.dataset.maImage = new URL(
+      product.image ?? "/images/products/product-unavailable.svg",
+      window.location.origin,
+    ).toString();
+    track("ma_productView");
+  }, [product, slug]);
   if (!product) return <div className="page-width section-page"><h1>Produit introuvable</h1><Link href="/categories">Retour au catalogue</Link></div>;
   const category = findCategory(product.category);
   const recommendations = listedProducts.filter((item) => item.category === product.category && item.categoryType === product.categoryType && item.id !== product.id).slice(0, 4);
+  const productImageUrl = new URL(product.image ?? "/images/products/product-unavailable.svg", siteOrigin).toString();
   return <div className="page-width section-page">
     <div className="breadcrumb"><Link href="/">Accueil</Link> / <Link href={`/categories/${product.category}`}>{category?.name}</Link> / {product.name}</div>
-    <div className="detail-layout">
+    <div
+      className="detail-layout"
+      id="ma-product"
+      data-ma-sku={product.reference}
+      data-ma-name={product.name}
+      data-ma-price={product.price?.toFixed(2) ?? ""}
+      data-ma-category={category?.name ?? product.category}
+      data-ma-brand={product.brand}
+      data-ma-image={productImageUrl}
+    >
       <div className={`detail-image${product.category === "batteries" && product.image ? " battery-detail-image" : ""}`} style={{ background: product.color }}>
         <span className="brand-chip">{product.brand}</span>
         {product.image ? <Image className="product-photo product-photo-detail" src={product.image} alt={product.imageAlt} fill sizes="(max-width: 800px) 100vw, 50vw" priority /> : <span aria-hidden="true">{product.icon}</span>}
@@ -324,10 +413,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
 }
 
 export function CartPage() {
-  const { cart, setQuantity, removeFromCart } = useStore();
+  const { cart, clearCart, setQuantity, removeFromCart } = useStore();
   const [promo, setPromo] = useState("");
   const [promoMessage, setPromoMessage] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
+  useEffect(() => {
+    track("ma_cartView");
+  }, []);
   const lines = cart.map((line) => ({ ...line, product: products.find((product) => product.id === line.productId) })).filter((line): line is typeof line & { product: Product } => Boolean(line.product));
   const articleCount = lines.reduce((count, line) => count + line.quantity, 0);
   const subtotal = lines.reduce((sum, line) => sum + (line.product.price ?? 0) * line.quantity, 0);
@@ -340,15 +432,32 @@ export function CartPage() {
     setPromoMessage(accepted ? "Code accepté : remise de 10 % appliquée." : "Code non reconnu. Essayez BIENVENUE10.");
   }
   if (!lines.length) return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon panier</div><div className="empty-state"><span className="empty-icon">🛒</span><h1>Votre panier est vide</h1><p>Découvrez notre sélection de pièces pour votre véhicule.</p><Link className="button button-primary" href="/categories">Continuer mes achats →</Link></div></div>;
-  return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon panier</div><h1>Votre panier <span className="subtle">({articleCount} article{articleCount !== 1 ? "s" : ""})</span></h1><div className="cart-layout"><section className="cart-items">{lines.map((line) => <article className="cart-line" key={line.productId}><div className="cart-product-art" style={{ background: line.product.color }}>{line.product.image ? <Image src={line.product.image} alt={line.product.imageAlt} width={100} height={100} sizes="100px" /> : <span aria-hidden="true">{line.product.icon}</span>}</div><div className="cart-line-info"><Link href={`/produit/${line.product.slug}`}><strong>{line.product.name}</strong></Link>{line.product.reference !== "Non indiquée" && <small>Réf. {line.product.reference}</small>}<span className="stock">● {line.product.stock}</span><button className="remove-link" onClick={() => removeFromCart(line.productId)}>Supprimer</button></div><div className="quantity-control"><button aria-label="Diminuer" onClick={() => setQuantity(line.productId, line.quantity - 1)}>−</button><span>{line.quantity}</span><button aria-label="Augmenter" onClick={() => setQuantity(line.productId, line.quantity + 1)}>+</button></div><strong className="line-price">{formatPrice(line.product.price === null ? null : line.product.price * line.quantity)}</strong></article>)}<Link href="/categories" className="text-link">← Continuer mes achats</Link></section><aside className="order-card"><h2>Votre commande</h2><form className="promo-form" onSubmit={applyPromo}><label htmlFor="promo">Vous avez un code promo ?</label><div><input id="promo" value={promo} onChange={(event) => setPromo(event.target.value)} placeholder="Code promo" /><button className="button button-secondary">Appliquer</button></div>{promoMessage && <small>{promoMessage}</small>}</form><div className="order-row"><span>Sous-total</span><strong>{formatPrice(subtotal)}</strong></div>{discount > 0 && <div className="order-row"><span>Remise BIENVENUE10</span><strong>− {formatPrice(discount)}</strong></div>}<div className="order-row"><span>Livraison estimée</span><strong>{delivery === 0 ? "Offerte" : formatPrice(delivery)}</strong></div><div className="order-total"><strong>Total TTC</strong><strong>{formatPrice(subtotal - discount + delivery)}</strong></div><button className="button button-primary checkout-button" onClick={() => window.alert("La validation de commande est simulée dans cette démo.")}>Continuer ma commande →</button><small className="demo-note">Démo : aucune commande ni aucun paiement réel ne sera effectué.</small></aside></div></div>;
+  return <div className="page-width section-page"><div className="breadcrumb"><Link href="/">Accueil</Link> / Mon panier</div><div className="cart-heading-row"><h1>Votre panier <span className="subtle">({articleCount} article{articleCount !== 1 ? "s" : ""})</span></h1><button className="button button-secondary clear-cart-button" type="button" onClick={() => { clearCart(); setPromo(""); setPromoApplied(false); setPromoMessage(""); }}>Vider le panier</button></div><div className="cart-layout"><section className="cart-items">{lines.map((line) => <article className="cart-line" key={line.productId}><div className="cart-product-art" style={{ background: line.product.color }}>{line.product.image ? <Image src={line.product.image} alt={line.product.imageAlt} width={100} height={100} sizes="100px" /> : <span aria-hidden="true">{line.product.icon}</span>}</div><div className="cart-line-info"><Link href={`/produit/${line.product.slug}`}><strong>{line.product.name}</strong></Link>{line.product.reference !== "Non indiquée" && <small>Réf. {line.product.reference}</small>}<span className="stock">● {line.product.stock}</span><button className="remove-link" onClick={() => removeFromCart(line.productId)}>Supprimer</button></div><div className="quantity-control"><button aria-label="Diminuer" onClick={() => setQuantity(line.productId, line.quantity - 1)}>−</button><span>{line.quantity}</span><button aria-label="Augmenter" onClick={() => setQuantity(line.productId, line.quantity + 1)}>+</button></div><strong className="line-price">{formatPrice(line.product.price === null ? null : line.product.price * line.quantity)}</strong></article>)}<Link href="/categories" className="text-link">← Continuer mes achats</Link></section><aside className="order-card"><h2>Votre commande</h2><form className="promo-form" onSubmit={applyPromo}><label htmlFor="promo">Vous avez un code promo ?</label><div><input id="promo" value={promo} onChange={(event) => setPromo(event.target.value)} placeholder="Code promo" /><button className="button button-secondary">Appliquer</button></div>{promoMessage && <small>{promoMessage}</small>}</form><div className="order-row"><span>Sous-total</span><strong>{formatPrice(subtotal)}</strong></div>{discount > 0 && <div className="order-row"><span>Remise BIENVENUE10</span><strong>− {formatPrice(discount)}</strong></div>}<div className="order-row"><span>Livraison estimée</span><strong>{delivery === 0 ? "Offerte" : formatPrice(delivery)}</strong></div><div className="order-total"><strong>Total TTC</strong><strong>{formatPrice(subtotal - discount + delivery)}</strong></div><button className="button button-primary checkout-button" onClick={() => { track("ma_checkout"); window.alert("La validation de commande est simulée dans cette démo."); }}>Continuer ma commande →</button><small className="demo-note">Démo : aucune commande ni aucun paiement réel ne sera effectué.</small></aside></div></div>;
 }
 
 export function AuthPage({ professional = false, registration = false }: { professional?: boolean; registration?: boolean }) {
   const { signIn, account, signOut } = useStore();
   const [register, setRegister] = useState(registration);
   const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [pendingAuthTrack, setPendingAuthTrack] = useState<"ma_login" | "ma_registration" | null>(null);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("confirmation") === "failed") {
+      setErrorMessage("Le lien de confirmation n’a pas pu être validé. Réessayez ou demandez un nouveau lien.");
+    }
+  }, []);
+  useEffect(() => {
+    if (!pendingAuthTrack) return;
+    track(pendingAuthTrack);
+    setPendingAuthTrack(null);
+  }, [pendingAuthTrack]);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSubmitting(true);
+    setMessage("");
+    setErrorMessage("");
     const form = new FormData(event.currentTarget);
     const profile = {
       firstName: String(form.get("firstName") ?? "Alexandre"),
@@ -364,23 +473,45 @@ export function AuthPage({ professional = false, registration = false }: { profe
     } as const;
     if (register) {
       try {
-        const registered = await demoAuthAdapter.register({
+        const result = await supabaseAuthAdapter.register({
           ...profile,
           password: String(form.get("password") ?? ""),
           marketingConsent: form.get("marketingConsent") === "on",
           acceptedTerms: form.get("acceptedTerms") === "on",
         });
-        signIn(registered);
-        setMessage("Votre compte de démonstration est créé.");
+        const optIns = {
+          email: form.get("marketingConsent") === "on",
+          sms: false,
+          push: false,
+        };
+        storeLocalUser(profile, optIns);
+        trackEvent({ type: "accountRegistration", accountType: profile.kind, marketingConsent: optIns.email });
+        setPendingAuthTrack("ma_registration");
+        if (result.profile) {
+          signIn(result.profile, optIns);
+          setMessage("");
+        } else if (result.requiresEmailConfirmation) {
+          setMessage("Votre inscription est enregistrée. Consultez votre boîte mail pour confirmer votre adresse avant de vous connecter.");
+        }
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Une erreur est survenue. Réessayez.");
+        setErrorMessage(error instanceof Error ? error.message : "Une erreur est survenue. Réessayez.");
+      } finally {
+        setSubmitting(false);
       }
       return;
     }
-    signIn(profile);
-    setMessage("Votre session de démonstration est ouverte.");
+    try {
+      const authenticated = await supabaseAuthAdapter.signIn(profile.email, String(form.get("password") ?? ""));
+      signIn(authenticated);
+      setPendingAuthTrack("ma_login");
+      setMessage("");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Une erreur est survenue. Réessayez.");
+    } finally {
+      setSubmitting(false);
+    }
   }
-  if (account) return <div className="page-width section-page"><div className="auth-card account-summary"><span className="eyebrow">MON ESPACE</span><h1>Bonjour {account.firstName} !</h1><p>Connecté en tant que {account.kind === "professionnel" ? "professionnel" : "particulier"} · {account.email}</p>{account.company && <p>Entreprise : {account.company}</p>}{account.siret && <p>SIRET : {account.siret}</p>}<p className="demo-note">Compte de démonstration — aucun mot de passe n’est conservé. N’utilisez pas d’identifiants réels.</p><div className="auth-links"><Link className="button button-secondary" href="/garage">Mon garage</Link><Link className="button button-secondary" href="/panier">Mon panier</Link><button className="button button-primary" onClick={() => { signOut(); setMessage(""); }}>Déconnexion</button></div></div></div>;
+  if (account) return <div className="page-width section-page"><div className="auth-card account-summary"><span className="eyebrow">MON ESPACE</span><h1>Bonjour {account.firstName} !</h1><p>Connecté en tant que {account.kind === "professionnel" ? "professionnel" : "particulier"} · {account.email}</p>{account.company && <p>Entreprise : {account.company}</p>}{account.siret && <p>SIRET : {account.siret}</p>}{errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}<div className="auth-links"><Link className="button button-secondary" href="/garage">Mon garage</Link><Link className="button button-secondary" href="/panier">Mon panier</Link><button className="button button-primary" onClick={() => { void signOut().then(() => setErrorMessage("")).catch((error: unknown) => setErrorMessage(error instanceof Error ? error.message : "La déconnexion a échoué.")); }}>Déconnexion</button></div></div></div>;
   return <div className="page-width section-page auth-page"><section className="auth-card"><span className="eyebrow">{professional ? "ESPACE PROFESSIONNEL" : "ESPACE CLIENT"}</span><h1>{professional ? register ? "Créer mon compte Pro" : "Bienvenue dans votre espace Pro" : register ? "Créer mon compte" : "Ravi de vous revoir !"}</h1><p>{professional ? "Accédez aux offres et services réservés aux professionnels de l’automobile." : "Connectez-vous à votre compte pour retrouver vos commandes et véhicules."}</p><div className="auth-tabs"><Link className={!professional ? "selected" : ""} href={register ? "/inscription/particulier" : "/connexion"}>Particulier</Link><Link className={professional ? "selected" : ""} href={register ? "/inscription/professionnel" : "/connexion-pro"}>Professionnel</Link></div><div className="auth-switch"><button type="button" className={!register ? "selected" : ""} onClick={() => setRegister(false)}>Connexion</button><button type="button" className={register ? "selected" : ""} onClick={() => setRegister(true)}>Créer un compte</button></div><form className="auth-form" onSubmit={submit}>
     {register && <div className="form-two"><label>Prénom<input required name="firstName" autoComplete="given-name" /></label><label>Nom<input required name="lastName" autoComplete="family-name" /></label></div>}
     <label>{professional ? "E-mail professionnel" : "Adresse e-mail"}<input required type="email" name="email" autoComplete="email" /></label>
@@ -388,9 +519,10 @@ export function AuthPage({ professional = false, registration = false }: { profe
     <label>Mot de passe<input required type="password" name="password" autoComplete={register ? "new-password" : "current-password"} minLength={8} /></label>
     {register && <div className="consent-fields"><label><input name="marketingConsent" type="checkbox" /> Je souhaite recevoir les offres et actualités (facultatif).</label><label><input name="acceptedTerms" required type="checkbox" /> J’accepte les conditions générales.</label></div>}
     {!register && <a className="forgot-link" href="#mot-de-passe">Mot de passe oublié ?</a>}
-    <button className="button button-primary auth-submit">{register ? "Créer mon compte" : "Me connecter"} <span>→</span></button>
-    {message && <p className="success-message">{message}</p>}
-  </form><div className="demo-disclaimer"><strong>Compte de démonstration — non destiné à la production</strong><p>Ne saisissez pas de vrai mot de passe. Le mot de passe n’est ni conservé, ni ajouté au profil de compte local.</p></div><p className="auth-create-link">Nouveau client ? <Link href="/inscription">Choisir mon type de compte</Link></p></section></div>;
+    <button className="button button-primary auth-submit" disabled={submitting}>{submitting ? "Veuillez patienter…" : register ? "Créer mon compte" : "Me connecter"} <span>→</span></button>
+    {errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}
+    {message && <p className="success-message" role="status">{message}</p>}
+  </form><div className="demo-disclaimer"><strong>Vos informations sont protégées</strong><p>Le compte et son mot de passe sont gérés par Supabase. Le mot de passe n’est jamais enregistré dans le profil client.</p></div><p className="auth-create-link">Nouveau client ? <Link href="/inscription">Choisir mon type de compte</Link></p></section></div>;
 }
 
 export function RegistrationChoicePage() {

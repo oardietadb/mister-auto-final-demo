@@ -4,7 +4,9 @@ export type AnalyticsEvent =
   | { type: "pageView"; path: string; title: string }
   | { type: "productListView"; category: string; productIds: string[] }
   | { type: "productView"; productId: string; name: string; price: number }
-  | { type: "search"; query: string };
+  | { type: "search"; query: string }
+  | { type: "accountRegistration"; accountType: "particulier" | "professionnel"; marketingConsent: boolean }
+  | { type: "newsletterSubscribe" };
 
 export async function sendAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
   const response = await fetch("/api/events", {

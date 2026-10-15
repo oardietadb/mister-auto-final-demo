@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { DemoAccount } from "@/lib/auth";
 import { readJsonBody } from "@/lib/server/read-json-body";
+import { createSupabaseServerClient, SupabaseConfigurationError } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +42,20 @@ export async function POST(request: Request) {
     lastName: lastName.trim(),
     email: email.trim().toLocaleLowerCase("fr"),
     kind,
+    marketingConsent,
   };
+  const metadata: Record<string, string | boolean | null> = {
+    first_name: profile.firstName,
+    last_name: profile.lastName,
+    account_type: kind,
+    marketing_consent: marketingConsent,
+    terms_accepted: true,
+    company: null,
+    siret: null,
+    professional_activity: null,
+    phone: null,
+  };
+
   if (kind === "professionnel") {
     const { company, siret, activity, phone } = body;
     if (
@@ -58,7 +72,47 @@ export async function POST(request: Request) {
       activity,
       phone: phone.trim(),
     });
+    Object.assign(metadata, {
+      company: company.trim(),
+      siret,
+      professional_activity: activity,
+      phone: phone.trim(),
+    });
   }
 
-  return NextResponse.json({ profile, demoOnly: true }, { status: 201, headers: { "Cache-Control": "no-store" } });
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: profile.email,
+      password,
+      options: {
+        data: metadata,
+        emailRedirectTo: new URL("/auth/callback", request.url).toString(),
+      },
+    });
+
+    if (error) {
+      if (error.code === "user_already_exists" || error.code === "email_exists") {
+        return NextResponse.json({ error: "Un compte existe déjà pour cette adresse e-mail." }, { status: 409 });
+      }
+      console.error("Supabase customer registration failed:", error);
+      return NextResponse.json({ error: "La création du compte a échoué. Vérifiez la configuration e-mail Supabase et réessayez." }, { status: 502 });
+    }
+
+    if (!data.user) {
+      console.error("Supabase signup succeeded without returning a user.");
+      return NextResponse.json({ error: "La création du compte n’a pas pu être confirmée." }, { status: 502 });
+    }
+
+    return NextResponse.json({
+      profile: data.session ? profile : null,
+      requiresEmailConfirmation: !data.session,
+    }, { status: 201, headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    if (error instanceof SupabaseConfigurationError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+    console.error("Customer registration could not reach Supabase:", error);
+    return NextResponse.json({ error: "Le service d’inscription est momentanément indisponible." }, { status: 502 });
+  }
 }
