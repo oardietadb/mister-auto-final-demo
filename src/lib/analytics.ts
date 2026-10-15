@@ -1,4 +1,5 @@
 import { validateAnalyticsEvent } from "@/lib/event-validation";
+import { isSupabaseConfigured } from "@/lib/auth";
 
 export type AnalyticsEvent =
   | { type: "pageView"; path: string; title: string }
@@ -9,6 +10,7 @@ export type AnalyticsEvent =
   | { type: "newsletterSubscribe" };
 
 export async function sendAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
+  if (!isSupabaseConfigured()) return;
   const response = await fetch("/api/events", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

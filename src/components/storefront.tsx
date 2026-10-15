@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState, useId, type FormEvent } from "react";
 import { categories, findCategory, findCategoryType, findProduct, formatPrice, listedProducts, products, type Category, type Product } from "@/lib/catalog";
 import { trackEvent } from "@/lib/analytics";
 import { track } from "@/lib/track";
-import { storeLocalUser, supabaseAuthAdapter } from "@/lib/auth";
+import { isSupabaseConfigured, storeLocalUser, supabaseAuthAdapter } from "@/lib/auth";
 import { validateVehicleSelection, vehicleCatalog, vehicleMileageOptions } from "@/lib/vehicles";
 import { useStore, type Vehicle } from "@/lib/store";
 
@@ -501,7 +501,7 @@ export function AuthPage({ professional = false, registration = false }: { profe
       return;
     }
     try {
-      const authenticated = await supabaseAuthAdapter.signIn(profile.email, String(form.get("password") ?? ""));
+      const authenticated = await supabaseAuthAdapter.signIn(profile.email, String(form.get("password") ?? ""), profile.kind);
       signIn(authenticated);
       setPendingAuthTrack("ma_login");
       setMessage("");
@@ -522,7 +522,7 @@ export function AuthPage({ professional = false, registration = false }: { profe
     <button className="button button-primary auth-submit" disabled={submitting}>{submitting ? "Veuillez patienter…" : register ? "Créer mon compte" : "Me connecter"} <span>→</span></button>
     {errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}
     {message && <p className="success-message" role="status">{message}</p>}
-  </form><div className="demo-disclaimer"><strong>Vos informations sont protégées</strong><p>Le compte et son mot de passe sont gérés par Supabase. Le mot de passe n’est jamais enregistré dans le profil client.</p></div><p className="auth-create-link">Nouveau client ? <Link href="/inscription">Choisir mon type de compte</Link></p></section></div>;
+  </form><div className="demo-disclaimer"><strong>Compte de démonstration</strong><p>{isSupabaseConfigured() ? "L’authentification est gérée par Supabase. Le mot de passe n’est jamais enregistré dans le profil client." : "Supabase n’est pas configuré : la connexion et l’inscription sont simulées localement. Aucun mot de passe n’est conservé."}</p></div><p className="auth-create-link">Nouveau client ? <Link href="/inscription">Choisir mon type de compte</Link></p></section></div>;
 }
 
 export function RegistrationChoicePage() {
