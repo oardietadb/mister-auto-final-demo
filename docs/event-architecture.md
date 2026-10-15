@@ -2,7 +2,7 @@
 
 ## Browser event flow
 
-`src/lib/analytics.ts` defines the extensible `AnalyticsEvent` union and keeps the existing `storefront:analytics` browser event for local integrations. It also posts events to `POST /api/events`. The registry includes:
+`src/lib/analytics.ts` defines the extensible `AnalyticsEvent` union and keeps the existing `storefront:analytics` browser event for local integrations. When both public Supabase environment variables are set, it also posts events to `POST /api/events`. Without either variable, it skips the network request entirely while preserving the browser event. The registry includes:
 
 - `pageView`
 - `productListView`
@@ -28,4 +28,4 @@ Adobe Tags can observe the storefront through direct calls in `src/lib/track.ts`
 - `POST /api/auth/login`, `GET /api/auth/session`, and `POST /api/auth/logout` manage Supabase sessions in HTTP-only cookies. `GET /auth/callback` exchanges the e-mail confirmation code for a session. Public profile details are loaded from Supabase and are not treated as an authentication token in browser storage.
 - `POST /api/vehicles` validates the local demonstration make/model/engine selection, mileage band, optional inspection month and year, and optional registration. The selected garage remains in browser storage through `src/lib/persistence.ts`; the endpoint does not perform a real registration lookup or write vehicle records to Supabase.
 
-The forms and event endpoints require the two public Supabase environment variables and the SQL migration in `supabase/migrations/`. Their missing configuration is returned as a service error; requests are not silently stored in memory as a fallback. No Adobe SDK or Adobe endpoint is included.
+The server-side forms and event endpoints require the two public Supabase environment variables and the SQL migration in `supabase/migrations/`. Their missing configuration is returned as a service error; requests are not silently stored in memory as a fallback. The browser avoids calling `/api/auth/*` and `/api/events` when either variable is missing. In that local demo mode, B2C/B2B login and registration save only the non-password profile to `mister-auto-demo-user`; session restore reads that key, and logout removes it. No Adobe SDK or Adobe endpoint is included.
