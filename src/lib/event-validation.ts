@@ -40,6 +40,12 @@ export function validateAnalyticsEvent(value: unknown): AnalyticsEvent | null {
       const query = safeText(value.query, 120);
       return query ? { type: "search", query } : null;
     }
+    case "accountRegistration": {
+      if ((value.accountType !== "particulier" && value.accountType !== "professionnel") || typeof value.marketingConsent !== "boolean") return null;
+      return { type: "accountRegistration", accountType: value.accountType, marketingConsent: value.marketingConsent };
+    }
+    case "newsletterSubscribe":
+      return { type: "newsletterSubscribe" };
     default:
       return null;
   }

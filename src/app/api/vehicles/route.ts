@@ -17,6 +17,8 @@ export async function POST(request: Request) {
     model: body.model,
     engine: body.engine,
     ...(body.registration ? { registration: body.registration.replace(/\s+/g, "").toLocaleUpperCase("fr") } : {}),
+    ...(body.mileage ? { mileage: body.mileage } : {}),
+    ...(body.lastInspection ? { lastInspection: body.lastInspection } : {}),
   };
   return NextResponse.json({ vehicle, validation: "demo-only" }, { headers: { "Cache-Control": "no-store" } });
 }
