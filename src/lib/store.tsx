@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { products, type Product } from "@/lib/catalog";
+import { categories, products, type Product } from "@/lib/catalog";
 import { LOCAL_USER_STORAGE_KEY, storeLocalUser, supabaseAuthAdapter, type DemoAccount, type LocalUserOptIns } from "@/lib/auth";
 import { createBrowserRepository } from "@/lib/persistence";
 import { track } from "@/lib/track";
@@ -108,7 +108,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [primaryVehicleId, setPrimaryVehicleId] = useState<string | null>(null);
   const [account, setAccount] = useState<DemoAccount | null>(null);
   const [ready, setReady] = useState(false);
-  const [pendingCartAddCount, setPendingCartAddCount] = useState(0);
+  const [pendingCartAdds, setPendingCartAdds] = useState<Array<{ product: Product; quantity: number }>>([]);
   useEffect(() => {
     let active = true;
     const storedCart = cartRepository.read();
@@ -168,10 +168,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
   }, [cart, vehicles, primaryVehicleId, ready]);
   useEffect(() => {
-    if (pendingCartAddCount === 0) return;
-    for (let index = 0; index < pendingCartAddCount; index += 1) track("ma_addToCart");
-    setPendingCartAddCount(0);
-  }, [pendingCartAddCount]);
+    if (pendingCartAdds.length === 0) return;
+    for (const { product, quantity } of pendingCartAdds) {
+      window.misterAuto ??= {};
+      const origin = window.location.origin;
+      const unitPrice = product.price ?? 0;
+      window.misterAuto.lastAddedItem = {
+        sku: product.reference,
+        name: product.name,
+        quantity,
+        unitPrice,
+        priceTotal: unitPrice * quantity,
+        imageUrl: new URL(product.image ?? "/images/products/product-unavailable.svg", origin).toString(),
+        productUrl: new URL(`/produit/${product.slug}`, origin).toString(),
+        category: categories.find((category) => category.slug === product.category)?.name ?? product.category,
+        brand: product.brand,
+      };
+      track("ma_addToCart");
+    }
+    setPendingCartAdds([]);
+  }, [pendingCartAdds]);
   const addToCart = useCallback((product: Product, quantity = 1) => {
     if (product.available === false || product.price === null || !Number.isSafeInteger(quantity) || quantity < 1) return;
     setCart((current) => {
@@ -180,7 +196,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ? current.map((item) => item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item)
         : [...current, { productId: product.id, quantity }];
     });
-    setPendingCartAddCount((current) => current + 1);
+    setPendingCartAdds((current) => [...current, { product, quantity }]);
   }, []);
   const clearCart = useCallback(() => setCart([]), []);
   const setQuantity = useCallback((productId: string, quantity: number) => {

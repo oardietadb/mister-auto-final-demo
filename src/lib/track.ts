@@ -6,9 +6,22 @@ export type MisterAutoCart = {
   itemCount: number;
 };
 
+export type MisterAutoAddedItem = {
+  sku: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  priceTotal: number;
+  imageUrl: string;
+  productUrl: string;
+  category: string;
+  brand: string;
+};
+
 export type MisterAutoGlobal = {
   cart?: MisterAutoCart;
   searchKeyword?: string;
+  lastAddedItem?: MisterAutoAddedItem;
 };
 
 const queuedTrackIds: string[] = [];
