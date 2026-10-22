@@ -8,6 +8,7 @@ import { trackEvent } from "@/lib/analytics";
 import { track } from "@/lib/track";
 import { useStore } from "@/lib/store";
 import { NewsletterForm } from "@/components/storefront";
+import { Icon } from "@/components/icon";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -30,38 +31,39 @@ export function SiteHeader() {
   }
   return (
     <>
-      <div className="announcement">Livraison offerte dès 59 € d’achat · Paiement sécurisé · Retours faciles sous 30 jours</div>
+      <a className="skip-link" href="#main-content">Aller au contenu</a>
+      <div className="announcement"><Icon name="truck" /> Livraison offerte dès 59 € d’achat <span className="announcement-details">· Paiement sécurisé · Retours faciles sous 30 jours</span></div>
       <header className="site-header">
         <div className="header-main page-width">
           <Link href="/" className="wordmark" aria-label="Mister Auto, accueil"><span>MISTER</span><strong>AUTO</strong></Link>
           <form className="search-box" onSubmit={search}>
             <input aria-label="Rechercher des pièces auto" placeholder="Rechercher un produit, une référence ou une marque" value={query} onChange={(event) => setQuery(event.target.value)} />
-            <button aria-label="Rechercher" type="submit">⌕</button>
+            <button aria-label="Rechercher" type="submit"><Icon name="search" /></button>
           </form>
           <div className="header-actions">
-            <Link href="/garage" className="header-action"><span>◉</span><small>Mon véhicule</small></Link>
+            <Link href="/garage" className="header-action garage-action" aria-label="Mon véhicule"><span><Icon name="car" /></span><small>Mon véhicule</small></Link>
             {account ? (
-              <div className="account-menu"><Link href="/compte" className="header-action"><span>♙</span><small>Bonjour, {account.firstName}</small></Link><button className="logout-link" onClick={signOut}>Déconnexion</button></div>
-            ) : <Link href="/connexion" className="header-action"><span>♙</span><small>Mon compte</small></Link>}
-            <Link href="/panier" className="header-action cart-action"><span>🛒{cartCount > 0 && <b>{cartCount}</b>}</span><small>Mon panier</small></Link>
+              <div className="account-menu"><Link href="/compte" className="header-action" aria-label={`Mon compte, ${account.firstName}`}><span><Icon name="user" /></span><small>Bonjour, {account.firstName}</small></Link><button className="logout-link" onClick={signOut}>Déconnexion</button></div>
+            ) : <Link href="/connexion" className="header-action account-action" aria-label="Mon compte"><span><Icon name="user" /></span><small>Mon compte</small></Link>}
+            <Link href="/panier" className="header-action cart-action" aria-label={`Mon panier, ${cartCount} article${cartCount === 1 ? "" : "s"}`}><span><Icon name="cart" />{cartCount > 0 && <b>{cartCount}</b>}</span><small>Mon panier</small></Link>
             <Link href={account?.kind === "professionnel" ? "/compte" : "/inscription"} className="pro-entry"><strong>{account?.kind === "professionnel" ? "Espace professionnel" : "Vous êtes un PRO ?"}</strong><small>{account?.kind === "professionnel" ? account.company : "Créer mon compte Pro ›"}</small></Link>
           </div>
         </div>
         <nav className="category-nav" aria-label="Catégories produits">
           <div className="page-width nav-inner">
-            <Link href="/categories" className={`all-products ${pathname === "/categories" ? "active" : ""}`}>☰ <span>Tous nos produits</span></Link>
+            <Link href="/categories" className={`all-products ${pathname === "/categories" ? "active" : ""}`} aria-current={pathname === "/categories" ? "page" : undefined}><Icon name="menu" /><span>Tous nos produits</span></Link>
             {categories.filter((category) => category.slug !== "pieces-occasion").map((category) => (
-              <Link key={category.slug} href={`/categories/${category.slug}`} className={pathname.startsWith(`/categories/${category.slug}`) ? "active" : ""}>{category.name}</Link>
+              <Link key={category.slug} href={`/categories/${category.slug}`} className={pathname.startsWith(`/categories/${category.slug}`) ? "active" : ""} aria-current={pathname.startsWith(`/categories/${category.slug}`) ? "page" : undefined}>{category.name}</Link>
             ))}
-            <Link href="/categories/pieces-occasion">Pièces d’occasion</Link>
+            <Link href="/categories/pieces-occasion" className={pathname.startsWith("/categories/pieces-occasion") ? "active" : ""} aria-current={pathname.startsWith("/categories/pieces-occasion") ? "page" : undefined}>Pièces d’occasion</Link>
           </div>
         </nav>
       </header>
       <div className="vehicle-strip">
         <div className="page-width vehicle-strip-inner">
-          <span className="vehicle-icon">🚘</span>
+          <span className="vehicle-icon"><Icon name="car" /></span>
           <span>{vehicle ? <><strong>{vehicle.make} {vehicle.model}</strong><small>{vehicle.engine}</small></> : <><strong>Des pièces compatibles avec votre voiture</strong><small>Ajoutez votre véhicule pour trouver les bonnes références</small></>}</span>
-          <Link href="/garage" className="button button-light">{vehicle ? "Gérer mon garage" : "Ajouter un véhicule"} <span>›</span></Link>
+          <Link href="/garage" className="button button-light">{vehicle ? "Gérer mon garage" : "Ajouter un véhicule"} <Icon name="arrow" /></Link>
         </div>
       </div>
     </>
@@ -72,10 +74,10 @@ export function SiteFooter() {
   return (
     <>
       <div className="service-benefits page-width">
-        <div><span>♧</span><strong>150 experts à votre écoute</strong></div>
-        <div><span>▣</span><strong>Paiement en 3 ou 4 fois</strong></div>
-        <div><span>⇢</span><strong>Livraison rapide</strong></div>
-        <div><span>↻</span><strong>Retours faciles sous 30 jours</strong></div>
+        <div><Icon name="headset" /><strong>150 experts à votre écoute</strong></div>
+        <div><Icon name="card" /><strong>Paiement en 3 ou 4 fois</strong></div>
+        <div><Icon name="truck" /><strong>Livraison rapide</strong></div>
+        <div><Icon name="returns" /><strong>Retours faciles sous 30 jours</strong></div>
       </div>
       <footer className="site-footer">
         <div className="page-width footer-newsletter"><div><strong>La route, en mieux.</strong><span>Nos actualités, offres et conseils auto par e-mail.</span></div><NewsletterForm /></div>

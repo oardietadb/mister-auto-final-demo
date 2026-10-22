@@ -9,10 +9,23 @@ import { track } from "@/lib/track";
 import { isSupabaseConfigured, storeLocalUser, supabaseAuthAdapter } from "@/lib/auth";
 import { validateVehicleSelection, vehicleCatalog, vehicleMileageOptions } from "@/lib/vehicles";
 import { useStore, type Vehicle } from "@/lib/store";
+import { Icon } from "@/components/icon";
 
 export function ProductCard({ product, layout = "standard" }: { product: Product; layout?: "standard" | "battery" }) {
   const { addToCart, vehicle } = useStore();
   const [compared, setCompared] = useState(false);
+  const [added, setAdded] = useState(false);
+  const unavailable = product.available === false || product.price === null;
+  useEffect(() => {
+    if (!added) return;
+    const timeout = window.setTimeout(() => setAdded(false), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [added]);
+  function addProduct() {
+    if (unavailable) return;
+    addToCart(product);
+    setAdded(true);
+  }
   if (layout === "battery") {
     return (
       <article className="product-card battery-product-card">
@@ -36,28 +49,32 @@ export function ProductCard({ product, layout = "standard" }: { product: Product
           <button className={compared ? "battery-compare selected" : "battery-compare"} type="button" aria-pressed={compared} onClick={() => setCompared((selected) => !selected)}>
             <span aria-hidden="true">{compared ? "✓" : "□"}</span> {compared ? "Sélectionné" : "Comparer"}
           </button>
-          <button className="button button-primary button-small" disabled={product.available === false} onClick={() => addToCart(product)}>
-            {product.available === false ? "Indisponible" : "Ajouter au panier"}
+          <button className="button button-primary button-small" disabled={unavailable} aria-label={`Ajouter ${product.name} au panier`} onClick={addProduct}>
+            {unavailable ? "Indisponible" : added ? "Ajouté au panier" : "Ajouter au panier"}
           </button>
         </div>
+        <span className="visually-hidden" role="status">{added ? `${product.name} ajouté au panier.` : ""}</span>
       </article>
     );
   }
   return (
-    <article className="product-card">
-      <Link className="product-image" href={`/produit/${product.slug}`} style={{ background: product.color }}>
+    <article className="product-card standard-product-card">
+      <Link className="product-image" href={`/produit/${product.slug}`}>
         <span className="brand-chip">{product.brand}</span>
         {product.image
           ? <Image className="product-photo" src={product.image} alt={product.imageAlt} fill sizes="(max-width: 680px) 50vw, (max-width: 1000px) 33vw, 25vw" />
-          : <span className="product-illustration" aria-hidden="true">{product.icon}</span>}
-        <span className="compatibility">{vehicle ? "✓ Compatibilité à confirmer" : "Ajoutez votre véhicule pour vérifier"}</span>
+          : <Image className="product-photo" src="/images/products/product-unavailable.svg" alt="Visuel non disponible" fill sizes="(max-width: 680px) 50vw, 25vw" />}
       </Link>
       <div className="product-content">
         <span className="product-reference">Réf. {product.reference}</span>
         <Link href={`/produit/${product.slug}`} className="product-name">{product.name}</Link>
-        {product.reviews > 0 && <div className="rating"><span>★★★★★</span> {product.rating} <small>({product.reviews} avis)</small></div>}
-        <p className={product.available === false ? "stock unavailable" : "stock"}>● {product.stock}</p>
-        <div className="product-buy"><strong>{formatPrice(product.price)}</strong><button className="button button-primary button-small" disabled={product.available === false} onClick={() => addToCart(product)}>{product.available === false ? "Indisponible" : "Ajouter au panier"}</button></div>
+        {product.reviews > 0
+          ? <div className="rating"><span aria-hidden="true">★</span> {product.rating.toLocaleString("fr-FR")}/5 <small>({product.reviews} avis)</small></div>
+          : <div className="rating" aria-hidden="true" />}
+        <p className="compatibility"><Icon name="car" />{vehicle ? "Compatibilité à confirmer" : "Ajoutez votre véhicule pour vérifier"}</p>
+        <p className={product.available === false ? "stock unavailable" : "stock"}>{product.available !== false && <Icon name="check" />}{product.stock}</p>
+        <div className="product-buy"><strong>{formatPrice(product.price)}</strong><button className="button button-primary button-small" disabled={unavailable} aria-label={`Ajouter ${product.name} au panier`} onClick={addProduct}>{added ? <Icon name="check" /> : <Icon name="cart" />}{unavailable ? "Indisponible" : added ? "Ajouté" : "Ajouter au panier"}</button></div>
+        <span className="visually-hidden" role="status">{added ? `${product.name} ajouté au panier.` : ""}</span>
       </div>
     </article>
   );
@@ -68,12 +85,17 @@ export function ProductGrid({ items, layout = "standard" }: { items: Product[]; 
 }
 
 export function CategoryTiles() {
-  return <div className="category-grid">{categories.map((category) => (
-    <Link className="category-tile" key={category.slug} href={`/categories/${category.slug}`}>
-      <span className="category-art" style={{ background: category.image, color: category.accent }}><b>{category.icon}</b></span>
-      <span className="category-tile-label"><strong>{category.name}</strong><small>{category.eyebrow}</small></span><span className="tile-arrow">↗</span>
-    </Link>
-  ))}</div>;
+  return <div className="category-grid">{categories.map((category) => {
+    const product = listedProducts.find((item) => item.category === category.slug && item.imageStatus === "matched");
+    return (
+      <Link className="category-tile" key={category.slug} href={`/categories/${category.slug}`}>
+        <span className="category-art">{product?.image
+          ? <Image src={product.image} alt="" width={100} height={90} sizes="100px" />
+          : <Icon name={category.slug === "chaines-neige" ? "snow" : "recycle"} />}</span>
+        <span className="category-tile-label"><strong>{category.name}</strong><small>{category.eyebrow}</small></span><Icon name="arrow" className="tile-arrow" />
+      </Link>
+    );
+  })}</div>;
 }
 
 export function CategoryTypes({ category }: { category: Category }) {
@@ -194,23 +216,31 @@ export function SectionHeading({ kicker, title, action }: { kicker?: string; tit
 }
 
 export function HomePage() {
+  const { vehicle } = useStore();
   const popular = listedProducts.filter((product) => ["reference-plaquette-delphi-lp3302", "battery-bol-m040002", "reference-pneu-goodyear-efficientgrip-528503", "reference-huile-mannol-legend-mn7730-5"].includes(product.id));
   const seasonal = listedProducts.filter((product) => ["reference-pneu-goodyear-efficientgrip-528503", "reference-pneu-michelin-energy-saver-771116", "battery-bol-m040002", "reference-pneu-dunlop-bluresponse-528520"].includes(product.id));
-  return <div>
+  const heroProducts = ["reference-huile-mannol-legend-mn7730-5", "battery-bol-m040002", "reference-pneu-goodyear-efficientgrip-528503"]
+    .flatMap((id) => popular.filter((product) => product.id === id));
+  return <div className="home-page">
     <section className="hero page-width">
-      <div className="hero-copy"><span className="eyebrow">MISTER AUTO, À VOS CÔTÉS SUR LA ROUTE</span><h1>Les bons produits auto,<br /><span>au bon moment.</span></h1><p>Des milliers de références, des marques reconnues et des conseils pour entretenir votre véhicule.</p><Link href="/categories" className="button button-primary">Découvrir nos pièces <span>→</span></Link><div className="hero-proof"><span>★★★★★</span> 4,6/5 · La confiance de nos clients</div></div>
-      <Link className="hero-asset" href="/categories" aria-label="Découvrir les offres Mister Auto"><Image src="/images/banners/home/offer-main.png" alt="Offres et prix avantageux sur une sélection de pièces auto" width={1129} height={295} priority sizes="(max-width: 680px) 100vw, 56vw" /></Link>
+      <div className="hero-copy"><h1>Les bons produits auto,<br /><span>au bon moment.</span></h1><p>Des milliers de références, des marques reconnues et des conseils pour entretenir votre véhicule.</p><div className="hero-actions"><Link href="/categories" className="button button-primary">Découvrir nos pièces <Icon name="arrow" /></Link><Link href="/garage" className="text-link">Mon garage <Icon name="arrow" /></Link></div><div className="hero-proof"><span aria-hidden="true">★★★★★</span><span>4,6/5 · La confiance de nos clients</span></div></div>
+      <div className="hero-products" role="group" aria-label="Une sélection de nos meilleures ventes">{heroProducts.map((product) => (
+        <Link key={product.id} className={`hero-product hero-product-${product.category}`} href={`/produit/${product.slug}`} aria-label={`Découvrir ${product.name}`}>
+          {product.image && <Image src={product.image} alt="" width={280} height={300} priority={product.category === "pneus"} sizes="(max-width: 680px) 45vw, 260px" />}
+          <span><strong>{product.brand}</strong><small>{categories.find((category) => category.slug === product.category)?.name}</small><Icon name="arrow" /></span>
+        </Link>
+      ))}</div>
     </section>
-    <div className="page-width vehicle-banner"><Link href="/garage" aria-label="Ajouter votre véhicule pour trouver des pièces adaptées"><Image src="/images/banners/services/vehicle-registration.png" alt="Ajoutez votre véhicule dans votre garage pour vérifier les pièces adaptées" width={1907} height={244} sizes="(max-width: 680px) 100vw, 1180px" /></Link><Link href="/garage" className="button button-primary">Identifier mon véhicule <span>→</span></Link></div>
+    <section className="page-width vehicle-banner" aria-labelledby="home-vehicle-title"><span className="vehicle-banner-icon"><Icon name="car" /></span><div><h2 id="home-vehicle-title">{vehicle ? `${vehicle.make} ${vehicle.model}` : "La bonne pièce commence par votre véhicule."}</h2><p>{vehicle ? vehicle.engine : "Retrouvez votre marque, votre modèle et votre motorisation dans votre garage."}</p><small>La compatibilité des pièces reste à confirmer.</small></div><Link href="/garage" className="button button-secondary">{vehicle ? "Gérer mon garage" : "Choisir mon véhicule"} <Icon name="arrow" /></Link></section>
     <div className="page-width">
-      <section className="section"><SectionHeading kicker="NOS UNIVERS" title="Trouvez tout pour votre auto" action={{ label: "Toutes les catégories", href: "/categories" }} /><CategoryTiles /></section>
-      <section className="section banner-section"><SectionHeading kicker="LES BONS PLANS DU MOMENT" title="Des offres pour prendre soin de votre voiture" /><Link className="full-banner-link" href="/categories/huile-moteur"><Image src="/images/banners/home/maintenance-offers.png" alt="Offres Mister Auto sur les produits d’entretien et l’huile moteur" width={1916} height={447} sizes="(max-width: 680px) 100vw, 1180px" /></Link></section>
-      <section className="section"><SectionHeading kicker="LES CHOIX DE LA COMMUNAUTÉ" title="Nos meilleures ventes" action={{ label: "Voir tout le catalogue", href: "/categories" }} /><ProductGrid items={popular} /></section>
-      <section className="section banner-section"><SectionHeading kicker="EN CE MOMENT" title="Nos sélections de saison" action={{ label: "Préparer mon véhicule", href: "/garage" }} /><Link className="full-banner-link" href="/categories/pneus"><Image src="/images/banners/home/seasonal-selection.png" alt="Sélection de produits auto de saison et équipements pour la route" width={1151} height={305} sizes="(max-width: 680px) 100vw, 1180px" /></Link><div className="seasonal-products"><ProductGrid items={seasonal} /></div></section>
+      <section className="section"><SectionHeading title="Trouvez tout pour votre auto" action={{ label: "Toutes les catégories", href: "/categories" }} /><CategoryTiles /></section>
+      <section className="section banner-section"><SectionHeading title="Des offres pour prendre soin de votre voiture" /><Link className="full-banner-link" href="/categories/huile-moteur"><Image src="/images/banners/home/maintenance-offers.png" alt="Offres Mister Auto sur les produits d’entretien et l’huile moteur" width={1916} height={447} sizes="(max-width: 680px) 100vw, 1180px" /></Link></section>
+      <section className="section"><SectionHeading title="Nos meilleures ventes" action={{ label: "Voir tout le catalogue", href: "/categories" }} /><ProductGrid items={popular} /></section>
+      <section className="section banner-section"><SectionHeading title="Nos sélections de saison" action={{ label: "Préparer mon véhicule", href: "/garage" }} /><Link className="full-banner-link" href="/categories/pneus"><Image src="/images/banners/home/seasonal-selection.png" alt="Sélection de produits auto de saison et équipements pour la route" width={1151} height={305} sizes="(max-width: 680px) 100vw, 1180px" /></Link><div className="seasonal-products"><ProductGrid items={seasonal} /></div></section>
       <div className="home-promo-grid"><Link className="full-banner-link" href="/categories/chaines-neige"><Image src="/images/banners/home/sachs-promotion.png" alt="Offre promotionnelle sur une sélection de pièces auto Sachs" width={1906} height={444} sizes="(max-width: 680px) 100vw, 580px" /></Link><Link className="full-banner-link" href="/categories/accessoires"><Image src="/images/banners/home/app-services.png" alt="Découvrez les services pratiques de l’application Mister Auto" width={1904} height={436} sizes="(max-width: 680px) 100vw, 580px" /></Link></div>
-      <section className="trust-row"><div><strong>01</strong><h3>À vos côtés</h3><p>Des experts pour vous guider dans le choix de vos pièces.</p></div><div><strong>02</strong><h3>Au meilleur prix</h3><p>Des marques reconnues et des offres toute l’année.</p></div><div><strong>03</strong><h3>Livrés chez vous</h3><p>Un suivi fiable, paiement sécurisé et retours simples sous 30 jours.</p></div></section>
-      <section className="section"><SectionHeading kicker="TOUT POUR L’ENTRETIEN" title="Un véhicule bien entretenu, c’est essentiel" /><p className="editorial-copy">Retrouvez une large sélection de pièces et d’accessoires pour entretenir votre véhicule en toute confiance. Consultez nos conseils, comparez les références et choisissez votre véhicule pour identifier les produits à vérifier.</p><div className="brand-row">{["BOSCH", "BREMBO", "MICHELIN", "VARTA", "CASTROL", "VALEO", "MANN-FILTER"].map((brand) => <span key={brand}>{brand}</span>)}</div><div className="advice-cards"><article><span>ENTRETIEN</span><h3>Quand faut-il changer son huile moteur ?</h3><p>Les bons repères pour planifier votre prochaine vidange.</p><Link href="/categories/huile-moteur">Voir les huiles moteur →</Link></article><article><span>SÉCURITÉ</span><h3>Freinage : les signes à surveiller</h3><p>Reconnaître les symptômes d’usure et choisir ses pièces.</p><Link href="/categories/freinage">Découvrir le freinage →</Link></article><article><span>CONSEIL</span><h3>Préparez votre voiture pour l’hiver</h3><p>Pneus, batterie et équipement : anticipez les changements de saison.</p><Link href="/categories/chaines-neige">Voir les équipements hiver →</Link></article></div></section>
-      <section className="home-newsletter"><div><span className="eyebrow">LE MEILLEUR DE MISTER AUTO</span><h2>Nos conseils et bons plans, dans votre boîte mail.</h2><p>Recevez les offres et conseils auto. Désinscription possible à tout moment.</p></div><NewsletterForm /></section>
+      <section className="trust-row"><div><Icon name="headset" /><h3>À vos côtés</h3><p>Des experts pour vous guider dans le choix de vos pièces.</p></div><div><Icon name="shield" /><h3>Au meilleur prix</h3><p>Des marques reconnues et des offres toute l’année.</p></div><div><Icon name="truck" /><h3>Livrés chez vous</h3><p>Un suivi fiable, paiement sécurisé et retours simples sous 30 jours.</p></div></section>
+      <section className="section"><SectionHeading title="Un véhicule bien entretenu, c’est essentiel" /><p className="editorial-copy">Retrouvez une large sélection de pièces et d’accessoires pour entretenir votre véhicule en toute confiance. Consultez nos conseils, comparez les références et choisissez votre véhicule pour identifier les produits à vérifier.</p><div className="brand-row">{["BOSCH", "BREMBO", "MICHELIN", "VARTA", "CASTROL", "VALEO", "MANN-FILTER"].map((brand) => <span key={brand}>{brand}</span>)}</div><div className="advice-cards"><article><span>ENTRETIEN</span><h3>Quand faut-il changer son huile moteur ?</h3><p>Les bons repères pour planifier votre prochaine vidange.</p><Link href="/categories/huile-moteur">Voir les huiles moteur  →</Link></article><article><span>SÉCURITÉ</span><h3>Freinage : les signes à surveiller</h3><p>Reconnaître les symptômes d’usure et choisir ses pièces.</p><Link href="/categories/freinage">Découvrir le freinage →</Link></article><article><span>CONSEIL</span><h3>Préparez votre voiture pour l’hiver</h3><p>Pneus, batterie et équipement : anticipez les changements de saison.</p><Link href="/categories/chaines-neige">Voir les équipements hiver →</Link></article></div></section>
+      <section className="home-newsletter"><div><h2>Nos conseils et bons plans, dans votre boîte mail.</h2><p>Recevez les offres et conseils auto. Désinscription possible à tout moment.</p></div><NewsletterForm /></section>
     </div>
   </div>;
 }
