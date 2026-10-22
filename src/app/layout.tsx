@@ -17,7 +17,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={inter.variable}>
         <StoreProvider>
           <SiteHeader />
-          <main>{children}</main>
+          <main id="main-content" tabIndex={-1}>{children}</main>
           <SiteFooter />
         </StoreProvider>
       </body>

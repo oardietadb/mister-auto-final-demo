@@ -27,6 +27,10 @@ npm run lint
 - Abonnements newsletter et événements analytiques validés par les Route Handlers puis stockés dans Supabase.
 - Événements front typés dans `src/lib/analytics.ts` et appels directs Adobe Tags via `src/lib/track.ts` ; aucun SDK Adobe n’est embarqué.
 
+## Interface
+
+L’identité orange, bleue et anthracite et les bannières de référence sont conservées. L’accueil met en avant les photographies du catalogue et un accès au garage lié au véhicule sélectionné, sans recherche automatique d’immatriculation. La navigation et les services partagent les pictogrammes SVG de `src/components/icon.tsx`. Les cartes produit confirment l’ajout au panier visuellement et via une annonce accessible. Les styles partagés dans `src/app/globals.css` incluent les états de focus clavier et le respect de la préférence de réduction des animations.
+
 ## Configurer Supabase
 
 1. Créez un projet Supabase, puis appliquez `supabase/migrations/20261013080000_customer_data.sql` depuis le SQL Editor du projet.
