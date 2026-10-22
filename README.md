@@ -31,6 +31,24 @@ npm run lint
 
 L’identité orange, bleue et anthracite et les bannières de référence sont conservées. L’accueil met en avant les photographies du catalogue et un accès au garage lié au véhicule sélectionné, sans recherche automatique d’immatriculation. La navigation et les services partagent les pictogrammes SVG de `src/components/icon.tsx`. Les cartes produit confirment l’ajout au panier visuellement et via une annonce accessible. Les styles partagés dans `src/app/globals.css` incluent les états de focus clavier et le respect de la préférence de réduction des animations.
 
+### Skill et agent de qualite d'image
+
+Le skill projet `firefly-image-quality` se trouve dans `.github/skills/firefly-image-quality/`. L'agent `Mister Auto image quality`, defini dans `.github/agents/image-quality.agent.md`, le reutilise pour auditer les visuels et preparer des ameliorations fideles aux references produit. Si ces elements n'apparaissent pas dans Copilot, rechargez le projet ou ouvrez une nouvelle session depuis ce checkout ; une nouvelle session issue de `main` ne les aura qu'apres leur fusion.
+
+```bash
+node .github/skills/firefly-image-quality/scripts/audit-pngs.mjs
+```
+
+Cet audit local affiche les dimensions des PNG et des seuils de resolution indicatifs, sans modifier ni envoyer les images. Le skill n'est pas un connecteur Adobe officiel et ne cree pas de connexion Firefly : l'acces au site Firefly ne prouve pas un acces aux API Firefly Services. Sans API verifiee, l'agent prepare des briefs et examine les exports fournis par l'utilisateur. Toute operation externe payante et tout remplacement d'image necessitent une validation explicite. Aucun secret ne doit etre fourni dans le chat ou le depot.
+
+Pour préparer des candidats locaux standardisés, sans remplacer les images du site :
+
+```bash
+npm run images:prepare -- --out /tmp/mister-auto-image-review
+```
+
+Les produits sont réextraits des captures originales puis centrés sur fond blanc, sans agrandissement artificiel. Les exports WebP sans perte et leur manifeste de provenance sont écrits dans le dossier de revue. Les bandeaux gardent leurs proportions et leur contenu. La procédure, les limites des sources et l’état de validation sont détaillés dans [`docs/product-image-audit.md`](docs/product-image-audit.md).
+
 ## Configurer Supabase
 
 1. Créez un projet Supabase, puis appliquez `supabase/migrations/20261013080000_customer_data.sql` depuis le SQL Editor du projet.
